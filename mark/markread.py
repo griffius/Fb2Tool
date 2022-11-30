@@ -32,8 +32,8 @@ class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
 		self.actionDeleteFromWork.triggered.connect(self.w.del_books_from_worklist)
 		self.actionShowWorkList.triggered.connect(self.w.show_worklist)
 		self.actionShowAll.triggered.connect(self.w.show_alllist)
-		self.actionMarkReadSelected.triggered.connect(lambda: self.w.check_read_status_selected_books(
-			settings.myhomelib, 'MyHomeLib', settings.mark_myhomelib))
+		self.actionMarkReadSelected.triggered.connect(self.w.mark_books)
+
 	def keyPressEvent(self, event):
 		if event.key() == QtCore.Qt.Key_Return:
 			self.listBase.setFocus()
@@ -116,10 +116,11 @@ class Worker:
 		self.total = total
 		self.work = work
 
-	@staticmethod
-	def mark_books(values, base='', query='', subquery=''):
-		for book in values:
-			print(book.text().split(' - ')[-1])
+	def mark_books(self):
+		values = self.get_selected_books()
+		self.check_read_status_selected_books(values, settings.myhomelib, 'MyHomeLib', settings.mark_myhomelib)
+		QMessageBox.information(MarkRead(), 'Успешно', 'Отметки прочтения выставлены для книг\n' + '\n'.join(values))
+		self.fill_list_book()
 
 	def get_selected_books(self):
 		self.checkeditems = []
@@ -129,8 +130,7 @@ class Worker:
 				self.checkeditems.append(self.listbase.item(i).text())
 		return self.checkeditems
 
-	def check_read_status_selected_books(self, db, program, query, subquery='', sqlite_connection=None):
-		values = self.get_selected_books()
+	def check_read_status_selected_books(self, values, db, program, query, subquery='', sqlite_connection=None):
 		try:
 			sqlite_connection = sqlite3.connect(db)
 			cursor = sqlite_connection.cursor()
@@ -138,15 +138,15 @@ class Worker:
 				search = query + '"' + value.split(' - ')[1] + '";'
 				if program == 'MyHomeLib':
 					cursor.execute(search)
+				elif program == 'Calibre':
+					pass
 			sqlite_connection.commit()
-			QMessageBox.information(MarkRead(), 'Успешно', 'Отметки прочтения выставлены для книг\n' + '\n'.join(values))
 		except sqlite3.Error:
 			QMessageBox.critical(MarkRead(), 'Ошибка', 'Нет соединения с базой ' + db)
 			return False
 		finally:
 			if sqlite_connection:
 				sqlite_connection.close()
-				self.fill_list_book()
 
 	# 				Case "calibre"
 	# 					$iRval = _SQLite_GetTable2d($hDskDb, $search, $aResult, $iRows, $iColumns)
@@ -229,6 +229,7 @@ class Db:
 
 	def open_sql(self, sqlite_connection=None):
 		book_in_base = []
+		base = ''
 		if settings.search_base == 'MyHomeLib':
 			base = settings.myhomelib
 		elif settings.search_base == 'Calibre':

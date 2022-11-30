@@ -11,12 +11,14 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 		super(SettingsDialog, self).__init__(parent)
 		self.setupUi(self)
 		self.myclose = True
+		self.groupCalibre.setCurrentIndex(0)
 		self.checkMyhomelib.stateChanged.connect(self.OnIsCheckedMyhomelib)
 		self.toolMyhomelib.clicked.connect(self.onToolMyhomelibBase)
 		self.checkCalibre.stateChanged.connect(self.OnIsCheckedCalibre)
 		self.toolCalibre.clicked.connect(self.onToolCalibreBase)
 		self.cmbBases.currentIndexChanged.connect(self.OnVisibleQuerySearchControls)
-
+		self.tootNextTab.clicked.connect(lambda: self.selectTabQueryCalibre('Первый запрос'))
+		self.tootPreviosTab.clicked.connect(lambda: self.selectTabQueryCalibre('Второй запрос'))
 	@property
 	def checker_Myhomelib(self):
 		return self.checkMyhomelib.isChecked()
@@ -93,6 +95,9 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 		if result:
 			self.inpMyhomelib.setText(result[0]) if result[0] else self.inpMyhomelib.setText(data)
 
+	def selectTabQueryCalibre(self, t):
+		self.groupCalibre.setCurrentIndex(0) if t == 'Второй запрос' else self.groupCalibre.setCurrentIndex(1)
+
 	def OnIsCheckedCalibre(self):
 		flags = self.checkCalibre.isChecked()
 		self.inpCalibre.setEnabled(flags)
@@ -100,9 +105,14 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 		self.toolCalibre.setEnabled(flags)
 		self.cmbBases.addItem('Calibre') if flags else self.cmbBases.removeItem(self.cmbBases.findText('Calibre'))
 		self.lblQueryMarkCalibre.setEnabled(flags)
-		self.textQueryMarkCalibre.setEnabled(flags)
+		self.groupCalibre.setEnabled(flags)
+		self.lblFirstQueryCalibre.setEnabled(flags)
+		self.lblSecondQueryCalibre.setEnabled(flags)
+		self.textQueryMarkCalibre1.setEnabled(flags)
+		self.textQueryMarkCalibre2.setEnabled(flags)
 		if not flags:
-			self.textQueryMarkCalibre.clear()
+			self.textQueryMarkCalibre1.clear()
+			self.textQueryMarkCalibre2.clear()
 
 	def onToolCalibreBase(self):
 		data = self.inpCalibre.text()
