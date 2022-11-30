@@ -1,9 +1,9 @@
 import os
 
+from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QMessageBox, QFileDialog
 
 from .setting_markread_ui import Ui_settings_mark
-from PyQt5 import QtWidgets
 
 
 class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):

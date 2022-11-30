@@ -1,14 +1,13 @@
-import os
-import shutil
 import re
 import sqlite3
+
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMessageBox
 
-from .markread_ui import Ui_MarkRead
 from .config_mark import settings, init, load, save
+from .markread_ui import Ui_MarkRead
 from .settingsdialog import SettingsDialog
 
 
