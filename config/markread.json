@@ -1,0 +1,10 @@
+{
+    "check_Myhomelib": true,
+    "myhomelib": "D:/Books/Colllection/Lib.hlc2",
+    "check_Calibre": false,
+    "calibre": "",
+    "search_base": "MyHomeLib",
+    "search": "SELECT FileName FROM Books WHERE Progress != 100;",
+    "mark_myhomelib": "UPDATE Books SET Progress = 100 WHERE Title like",
+    "mark_calibre": ""
+}
