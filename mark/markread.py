@@ -32,7 +32,8 @@ class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
 		self.actionDeleteFromWork.triggered.connect(self.w.del_books_from_worklist)
 		self.actionShowWorkList.triggered.connect(self.w.show_worklist)
 		self.actionShowAll.triggered.connect(self.w.show_alllist)
-
+		self.actionMarkReadSelected.triggered.connect(lambda: self.w.check_read_status_selected_books(
+			settings.myhomelib, 'MyHomeLib', settings.mark_myhomelib))
 	def keyPressEvent(self, event):
 		if event.key() == QtCore.Qt.Key_Return:
 			self.listBase.setFocus()
@@ -128,17 +129,37 @@ class Worker:
 				self.checkeditems.append(self.listbase.item(i).text())
 		return self.checkeditems
 
-	def check_read_status_selected_books(self, values, db, query, subquery='', sqlite_connection=None):
-		print('OK')
-		# try:
-		# 	sqlite_connection = sqlite3.connect(db)
-		# 	cursor = sqlite_connection.cursor()
-		# except sqlite3.Error:
-		# 	QMessageBox.critical('Markread', 'Запрос для установки отметки для базы Calibre не может быть пустым')
-		# 	return False
-		# finally:
-		# 	if sqlite_connection:
-		# 		sqlite_connection.close()
+	def check_read_status_selected_books(self, db, program, query, subquery='', sqlite_connection=None):
+		values = self.get_selected_books()
+		try:
+			sqlite_connection = sqlite3.connect(db)
+			cursor = sqlite_connection.cursor()
+			for value in values:
+				search = query + '"' + value.split(' - ')[1] + '";'
+				if program == 'MyHomeLib':
+					cursor.execute(search)
+			sqlite_connection.commit()
+			QMessageBox.information(MarkRead(), 'Успешно', 'Отметки прочтения выставлены для книг\n' + '\n'.join(values))
+		except sqlite3.Error:
+			QMessageBox.critical(MarkRead(), 'Ошибка', 'Нет соединения с базой ' + db)
+			return False
+		finally:
+			if sqlite_connection:
+				sqlite_connection.close()
+				self.fill_list_book()
+
+	# 				Case "calibre"
+	# 					$iRval = _SQLite_GetTable2d($hDskDb, $search, $aResult, $iRows, $iColumns)
+	# 					If $iRval = $SQLITE_OK Then
+	# 						$id = $aResult[1][0]
+	# 						_SQLite_Exec($hDskDb, $subquery & $id & ', 1);')
+	# 					EndIf
+	# 			EndSwitch
+	# 		Next
+	# 	EndIf
+	# 	_SQLite_Close($hDskDb)
+	# 	_SQLite_Shutdown()
+	# EndFunc
 
 	# Процедура поиска по тексту с окна ввода
 	def search_text(self):
@@ -239,33 +260,6 @@ class Db:
 		finally:
 			if sqlite_connection:
 				sqlite_connection.close()
-
-# Func _check_read($value, $base, $program, $query, $subquery='')
-# 	Local $aResult, $iRows, $iColumns
-# 	If $createbackup = '1' Then _backup_db($base)
-# 	_init_sql()
-# 	Local $hDskDb = _SQLite_Open($base)
-# 	If @error Then
-# 		MsgBox(16, "Ошибка SQLite", "Не удалось открыть постоянную базу данных на диске!" & @error)
-# 		Exit -1
-# 	Else
-# 		For $i=1 To $value[0]
-# 			$search = $query&' "'&StringSplit($value[$i], ' - ', 1)[2]&'";'
-# 			Switch $program
-# 				Case "MyHomeLib"
-# 					_SQLite_Exec($hDskDb, $search)
-# 				Case "calibre"
-# 					$iRval = _SQLite_GetTable2d($hDskDb, $search, $aResult, $iRows, $iColumns)
-# 					If $iRval = $SQLITE_OK Then
-# 						$id = $aResult[1][0]
-# 						_SQLite_Exec($hDskDb, $subquery & $id & ', 1);')
-# 					EndIf
-# 			EndSwitch
-# 		Next
-# 	EndIf
-# 	_SQLite_Close($hDskDb)
-# 	_SQLite_Shutdown()
-# EndFunc
 
 # 	Func
 # 	_FileBackups($sPathOriginal, $sPathBackup = '', $iCountCopies = 3, $iDiffSize = 0, $iDiffTime = 0, $sSuff = '')
