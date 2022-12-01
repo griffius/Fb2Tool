@@ -123,7 +123,11 @@ class Worker:
 
 	def mark_books(self):
 		values = self.get_selected_books()
-		self.check_read_status_selected_books(values, settings.myhomelib, 'MyHomeLib', settings.mark_myhomelib)
+		if settings.check_Myhomelib:
+			self.check_read_status_selected_books(values, settings.myhomelib, 'MyHomeLib', settings.mark_myhomelib)
+		if settings.check_Calibre:
+			self.check_read_status_selected_books(values, settings.calibre, 'Calibre', settings.mark_calibre["query1"],
+												  settings.mark_calibre["query2"])
 		QMessageBox.information(MarkRead(), 'Успешно', 'Отметки прочтения выставлены для книг\n' + '\n'.join(values))
 		self.fill_list_book()
 
@@ -144,7 +148,10 @@ class Worker:
 				if program == 'MyHomeLib':
 					cursor.execute(search)
 				elif program == 'Calibre':
-					pass
+					cursor.execute(search)
+					res_idx = cursor.fetchall()
+					idx = str(res_idx[0][0])
+					cursor.execute(subquery + idx + ', 1);')
 			sqlite_connection.commit()
 		except sqlite3.Error:
 			QMessageBox.critical(MarkRead(), 'Ошибка', 'Нет соединения с базой ' + db)
@@ -152,19 +159,6 @@ class Worker:
 		finally:
 			if sqlite_connection:
 				sqlite_connection.close()
-
-	# 				Case "calibre"
-	# 					$iRval = _SQLite_GetTable2d($hDskDb, $search, $aResult, $iRows, $iColumns)
-	# 					If $iRval = $SQLITE_OK Then
-	# 						$id = $aResult[1][0]
-	# 						_SQLite_Exec($hDskDb, $subquery & $id & ', 1);')
-	# 					EndIf
-	# 			EndSwitch
-	# 		Next
-	# 	EndIf
-	# 	_SQLite_Close($hDskDb)
-	# 	_SQLite_Shutdown()
-	# EndFunc
 
 	# Процедура поиска по тексту с окна ввода
 	def search_text(self):
@@ -266,89 +260,3 @@ class Db:
 		finally:
 			if sqlite_connection:
 				sqlite_connection.close()
-
-# 	Func
-# 	_FileBackups($sPathOriginal, $sPathBackup = '', $iCountCopies = 3, $iDiffSize = 0, $iDiffTime = 0, $sSuff = '')
-# 	Local $aPath, $aTB, $aTO, $iDateCalc, $Success
-# 	If $iCountCopies < 1
-# 	Then
-# 	Return
-# 	SetError(2, 0, 0)
-# 	If
-# 	Not
-# 	FileExists($sPathOriginal) Then
-# 	Return
-# 	SetError(3, 0, 0)
-# 	$aPath = _FO_PathSplit($sPathOriginal)
-# 	If
-# 	Not $sPathBackup
-# 	Then
-# 	$sPathBackup = $aPath[0];
-# 	если
-# 	пустая
-# 	строка
-#
-#
-# ElseIf
-# Not(StringRegExp($sPathBackup, '(?i)^[a-z]:[^/:*?"<>|]*$') Or
-# StringInStr($sPathBackup, '\\')) Then;
-# если
-# не
-# полный
-# путь
-# или
-# не
-# UNC
-# If
-# StringRegExp($sPathBackup, '[/:*?"<>|]') Then
-# $sPathBackup = $aPath[0]
-# Else
-# $sPathBackup = StringReplace($aPath[0] & $sPathBackup & '\', '\\', '\') ; то относительный путь
-# EndIf
-# EndIf
-# Switch $iDiffSize
-# Case - 1
-# $iDiffSize = 1
-# Case
-# 0
-# $iDiffSize = 0
-# Case
-# Else
-# $iDiffSize = (FileGetSize($sPathOriginal) <> FileGetSize($sPathBackup & $aPath[1] & '_1' & $aPath[2] &$sSuff))
-# EndSwitch
-# If $iDiffTime
-# Then
-# $aTO = FileGetTime($sPathOriginal)
-# $aTB = FileGetTime($sPathBackup & $aPath[1] & '_1' & $aPath[2] &$sSuff)
-# If
-# Not @ error
-# Then
-# $iDateCalc = _DateDiff('s', $aTB[0] & '/' & $aTB[1] & '/' & $aTB[2] & ' ' & $aTB[3] & ':' & $aTB[4] & ':' & $aTB[5], $
-# aTO[0] & '/' & $aTO[1] & '/' & $aTO[2] & ' ' & $aTO[3] & ':' & $aTO[4] & ':' & $aTO[5])
-# $iDiffTime = ($iDateCalc > $iDiffTime)
-# EndIf
-# EndIf
-# $sPathBackup &= $aPath[1]
-# If
-# Not
-# FileExists($sPathBackup & '_1' & $aPath[2]) Or $iDiffSize
-# Or $iDiffTime
-# Then
-# $Success = 1
-# For $i = $iCountCopies
-# To
-# 2
-# Step - 1
-# If $Success
-# And
-# FileExists($sPathBackup & '_' & $i - 1 & $aPath[2] &$sSuff) Then $Success = FileMove($sPathBackup & '_' & $i - 1 & $
-# aPath[2] &$sSuff, $sPathBackup & '_' & $i & $aPath[2] &$sSuff, 9)
-# Next
-# If $Success
-# Then $Success = FileCopy($sPathOriginal, $sPathBackup & '_1' & $aPath[2] &$sSuff, 9)
-# Return
-# SetError(Not $Success, 0, $Success)
-# EndIf
-# Return
-# SetError(0, 0, 0)
-# EndFunc
