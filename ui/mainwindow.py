@@ -32,6 +32,7 @@ _t = QCoreApplication.translate
 
 class MainWindow (QMainWindow, Ui_MainWindow):
     def __init__(self):
+        self.markread = None
         self.menu = None
         config.init()
         config.load()
@@ -115,8 +116,6 @@ class MainWindow (QMainWindow, Ui_MainWindow):
         self.actionsSetEnabled()
         self.onToolbar_plugins()
         self.statusbar()
-
-        self.markread = MarkRead()
         self.mark_enable()
 
     def mark_enable(self):
@@ -685,6 +684,7 @@ class MainWindow (QMainWindow, Ui_MainWindow):
         about.exec()
 
     def onMarkRead(self):
+        self.markread = MarkRead()
         self.markread.show()
         if not self.markread.fill_list_book():
             QMessageBox.critical(self.markread, "Ошибка", "Что-то не так с базой данных или с запросом к ней")

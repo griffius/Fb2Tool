@@ -282,6 +282,8 @@ class BookInfoPanel(QWidget, Ui_BookInfoPanel):
             self.clearCover()
             self.labelCoverImage.setEnabled(False)
             self.textDescription.setText('')
+            self.widgetCoverInfo.setVisible(False)
+            self.toggleCoverInfo.setIcon(QIcon(':/icons/collapsed_16px.png'))
 
         self.isDataChanged = False
         self.dataChanged.emit(self.isDataChanged)

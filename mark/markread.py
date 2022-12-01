@@ -47,15 +47,16 @@ class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
 
 	def fill_list_book(self):
 		self.listBase.clear()
-		book_in_base = self.db.open_sql()
-		if book_in_base:
-			for book in book_in_base:
-				item = QtWidgets.QListWidgetItem()
-				item.setText(book)
-				item.setCheckState(QtCore.Qt.Unchecked)
-				self.listBase.addItem(item)
-			return True
-		else:
+		try:
+			book_in_base = self.db.open_sql()
+			if book_in_base:
+				for book in book_in_base:
+					item = QtWidgets.QListWidgetItem()
+					item.setText(book)
+					item.setCheckState(QtCore.Qt.Unchecked)
+					self.listBase.addItem(item)
+				return True
+		except:
 			return False
 
 	@staticmethod
