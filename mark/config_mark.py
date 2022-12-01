@@ -19,7 +19,7 @@ settings = SimpleNamespace(
 	search_base=None,
 	search=None,
 	mark_myhomelib=None,
-	mark_calibre=None
+	mark_calibre={}
 )
 
 

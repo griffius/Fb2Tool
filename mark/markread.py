@@ -92,6 +92,9 @@ class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
 		settingsDialog.searchBase = settings.search_base
 		settingsDialog.searchQuery = settings.search
 		settingsDialog.markQueryMyhomelib = settings.mark_myhomelib
+		settingsDialog.markQueryCalibre1 = settingsDialog.load_query_calibre('query1')
+		settingsDialog.markQueryCalibre2 = settingsDialog.load_query_calibre('query2')
+
 		if settingsDialog.exec_():
 			settings.check_Myhomelib = settingsDialog.checker_Myhomelib
 			settings.myhomelib = settingsDialog.myhomelib
@@ -100,6 +103,8 @@ class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
 			settings.search_base = settingsDialog.searchBase
 			settings.search = settingsDialog.searchQuery
 			settings.mark_myhomelib = settingsDialog.markQueryMyhomelib
+			settingsDialog.save_query_calibre('query1', settingsDialog.markQueryCalibre1)
+			settingsDialog.save_query_calibre('query2', settingsDialog.markQueryCalibre2)
 		if settingsDialog.myclose:
 			save()
 			self.fill_list_book()

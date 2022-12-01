@@ -3,6 +3,7 @@ import os
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QMessageBox, QFileDialog
 
+from .config_mark import settings
 from .setting_markread_ui import Ui_settings_mark
 
 
@@ -77,6 +78,22 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 	def markQueryMyhomelib(self, value):
 		self.textQueryMarkMyhomelib.setPlainText(value)
 
+	@property
+	def markQueryCalibre1(self):
+		return self.textQueryMarkCalibre1.toPlainText()
+
+	@markQueryCalibre1.setter
+	def markQueryCalibre1(self, value):
+		self.textQueryMarkCalibre1.setPlainText(value)
+
+	@property
+	def markQueryCalibre2(self):
+		return self.textQueryMarkCalibre2.toPlainText()
+
+	@markQueryCalibre2.setter
+	def markQueryCalibre2(self, value):
+		self.textQueryMarkCalibre2.setPlainText(value)
+
 	def OnIsCheckedMyhomelib(self):
 		flags = self.checkMyhomelib.isChecked()
 		self.inpMyhomelib.setEnabled(flags)
@@ -138,6 +155,15 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 		self.myclose = False
 		self.close()
 
+	def load_query_calibre(self, key, default_value=None):
+		if key in settings.mark_calibre.keys():
+			return settings.mark_calibre[key]
+		else:
+			return default_value
+
+	def save_query_calibre(self, key, value):
+		settings.mark_calibre[key] = value
+
 	def accept(self):
 		if self.checker_Myhomelib:
 			if not os.path.exists(self.myhomelib):
@@ -155,8 +181,8 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 			if self.textQueryMarkMyhomelib.toPlainText() == '':
 				QMessageBox.critical(self, 'Markread', 'Запрос для установки отметки для базы MyHomeLib не может быть пустым')
 				return False
-		if self.textQueryMarkCalibre.isEnabled():
-			if self.textQueryMarkCalibre.toPlainText() == '':
-				QMessageBox.critical(self, 'Markread', 'Запрос для установки отметки для базы Calibre не может быть пустым')
-				return False
+		# if self.textQueryMarkCalibre.isEnabled():
+		# 	if self.textQueryMarkCalibre.toPlainText() == '':
+		# 		QMessageBox.critical(self, 'Markread', 'Запрос для установки отметки для базы Calibre не может быть пустым')
+		# 		return False
 		return super().accept()

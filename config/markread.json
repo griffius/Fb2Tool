@@ -1,10 +1,13 @@
 {
     "check_Myhomelib": true,
     "myhomelib": "D:/Books/Colllection/Lib.hlc2",
-    "check_Calibre": false,
-    "calibre": "",
+    "check_Calibre": true,
+    "calibre": "D:/Books/Calibre_final/metadata.db",
     "search_base": "MyHomeLib",
     "search": "SELECT FileName FROM Books WHERE Progress != 100;",
     "mark_myhomelib": "UPDATE Books SET Progress = 100 WHERE Title like",
-    "mark_calibre": ""
+    "mark_calibre": {
+        "query1": "SELECT id FROM books WHERE title like",
+        "query2": "INSERT INTO custom_column_3 (book, value) VALUES ("
+    }
 }
