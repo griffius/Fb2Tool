@@ -26,8 +26,6 @@ settings = SimpleNamespace(
 def init():
 	if not os.path.exists(config_path):
 		os.makedirs(config_path)
-	# if not os.path.exists(config_mark_file):
-	# 	save()
 
 
 def save():
@@ -41,6 +39,7 @@ def save():
 def load():
 	if not os.path.exists(config_path):
 		os.makedirs(config_path)
+
 	if os.path.exists(config_mark_file):
 		with codecs.open(config_mark_file, 'r', encoding='utf-8') as f:
 			c = json.loads(f.read())
