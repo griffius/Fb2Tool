@@ -300,7 +300,7 @@ class Ui_settings_mark(object):
         self.lblQueryMarkCalibre.setWhatsThis("")
         self.lblQueryMarkCalibre.setAccessibleName("")
         self.lblQueryMarkCalibre.setAccessibleDescription("")
-        self.lblQueryMarkCalibre.setText("Query for mark in Calibre")
+        self.lblQueryMarkCalibre.setText("Для отметки в Calibre")
         self.lblQueryMarkCalibre.setWordWrap(True)
         self.lblQueryMarkCalibre.setObjectName("lblQueryMarkCalibre")
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.lblQueryMarkCalibre)

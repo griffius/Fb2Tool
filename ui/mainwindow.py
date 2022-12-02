@@ -330,6 +330,7 @@ class MainWindow (QMainWindow, Ui_MainWindow):
         self.total.setText(_t('main', 'On the list {0} {1}').format(total, sclon))
         if self.bookList.model().rowCount() == 0:
             self.total.setText(_t('main', 'List is empty'))
+            self.sel_book.setText(self.onSklon(_t('main', 'book'), _t('main', 'books'), _t('main', 'books'), '1'))
             self.bookInfo.clear()
             self.actionsEnabled = False
             self.actionsSetEnabled()
@@ -572,6 +573,10 @@ class MainWindow (QMainWindow, Ui_MainWindow):
         else:
             self.bookInfo.clear()
             self.actionsSetEnabled()
+        self.sel_book.setText(self.onSklon(_t('main', 'book'), _t('main', 'books'), _t('main', 'books'), '1'))
+        total = self.bookList.model().rowCount()
+        sclon = self.onSklon(_t('main', 'book'), _t('main', 'books'), _t('main', 'books'))
+        self.total.setText(_t('main', 'On the list {0} {1}').format(total, sclon))
 
     def onToolFilterMenu(self):
         actionList = {
