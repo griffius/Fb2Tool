@@ -738,7 +738,7 @@ class MainWindow (QMainWindow, Ui_MainWindow):
         self.markread = MarkRead()
         self.markread.show()
         if not self.markread.fill_list_book():
-            QMessageBox.critical(self.markread, "Ошибка", "Что-то не так с базой данных или с запросом к ней")
+            QMessageBox.critical(self, "Ошибка", "Что-то не так с базой данных или с запросом к ней")
             self.markread.onSettings()
 
     def onAboutQt(self):

@@ -8,16 +8,17 @@ from ui.mainwindow import MainWindow
 
 def main():
     app = QApplication(sys.argv)
-
     if getattr(sys, 'frozen', False):
         app_path = os.path.dirname(sys.executable)
     else:
         app_path = os.path.dirname(__file__)
     
     locale = QLocale.system().name()
-    app_locale = os.path.join(app_path, 'locale/Fb2Tool_' + locale + '.qm')
-    qt_locale = os.path.join(app_path, 'locale/qtbase_' + locale + '.qm')
-    
+    # app_locale = os.path.join(app_path, 'locale/Fb2Tool_' + locale + '.qm')
+    app_locale = os.path.join(app_path, 'locale/Fb2Tool_ru_RU.qm')
+    # qt_locale = os.path.join(app_path, 'locale/qtbase_' + locale + '.qm')
+    qt_locale = os.path.join(app_path, 'locale/qtbase_ru_RU.qm')
+
     if sys.platform == 'win32':
         app_font = QFont('Segoe UI', 9)
         QApplication.setFont(app_font)
