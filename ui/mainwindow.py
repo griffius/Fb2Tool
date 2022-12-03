@@ -389,6 +389,7 @@ class MainWindow (QMainWindow, Ui_MainWindow):
             self.bookInfo.setData(book_info_list)
         else:
             self.actionsEnabled = False
+            self.bookInfo.unvisible_cover_panel()
         self.sel_book.setText(self.onSklon(_t('main', 'book'), _t('main', 'books'), _t('main', 'books'), '1'))
         self.actionsSetEnabled()
 

@@ -279,15 +279,16 @@ class BookInfoPanel(QWidget, Ui_BookInfoPanel):
             self.setCoverImage()
             self.labelCoverImage.setEnabled(True)
         else:
-            self.clearCover()
-            self.labelCoverImage.setEnabled(False)
-            self.textDescription.setText('')
-            self.widgetCoverInfo.setVisible(False)
-            self.toggleCoverInfo.setIcon(QIcon(':/icons/collapsed_16px.png'))
-
+            self.unvisible_cover_panel()
         self.isDataChanged = False
         self.dataChanged.emit(self.isDataChanged)
 
+    def unvisible_cover_panel(self):
+        self.clearCover()
+        self.labelCoverImage.setEnabled(False)
+        self.textDescription.setText('')
+        self.widgetCoverInfo.setVisible(False)
+        self.toggleCoverInfo.setIcon(QIcon(':/icons/collapsed_16px.png'))
 
     def getData(self):
         for bookInfo in self.bookInfoList:
