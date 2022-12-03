@@ -18,8 +18,12 @@ class SettingsDialog(Ui_SettingsDialog, SmartDialog):
         self.btnDowloadConverter.clicked.connect(self.onDownloadConverter)
         if sys.platform == 'win32':
             self.textConverterPath.setFilter(_t('SettingsDialog', 'fb2c.exe (fb2c.exe);;All files (*.*)'))
+            self.textReaderFb2.setFilter(_t('SettingsDialog', 'Executable files (*.exe);;All files (*.*)'))
+            self.textReaderEpub.setFilter(_t('SettingsDialog', 'Executable files (*.exe);;All files (*.*)'))
         else:
             self.textConverterPath.setFilter(_t('SettingsDialog', 'fb2c (fb2c);;All files (*)'))
+            self.textReaderFb2.setFilter(_t('SettingsDialog', 'All files (*)'))
+            self.textReaderEpub.setFilter(_t('SettingsDialog', 'All files (*)'))
         self.textConverterPath.setCaption(_t('SettingsDialog', 'Select fb2c executable'))
         self.textConverterConfig.setCaption(_t('SettingsDialog', 'Select fb2c config file'))
         self.textConverterConfig.setFilter(_t('SettingsDialog', 'Config files (*.json *.yaml *.yml *.toml);;All files(*.*)'))
@@ -34,6 +38,13 @@ class SettingsDialog(Ui_SettingsDialog, SmartDialog):
         return self.textConverterConfig.text()
 
     @property
+    def readerAppFb2(self):
+        return self.textReaderFb2.text()
+
+    @property
+    def readerAppEpub(self):
+        return self.textReaderEpub.text()
+    @property
     def defaultDir(self):
         return self.textDefaultDir.text()
 
@@ -44,6 +55,14 @@ class SettingsDialog(Ui_SettingsDialog, SmartDialog):
     @converterConfig.setter
     def converterConfig(self, value):
         self.textConverterConfig.setText(value)
+
+    @readerAppFb2.setter
+    def readerAppFb2(self, value):
+        self.textReaderFb2.setText(value)
+
+    @readerAppEpub.setter
+    def readerAppEpub(self, value):
+        self.textReaderEpub.setText(value)
 
     @defaultDir.setter
     def defaultDir(self, value):

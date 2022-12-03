@@ -270,7 +270,7 @@ class BookInfoPanel(QWidget, Ui_BookInfoPanel):
         self.textPublishISBN.setEnabled(True)
         self.textPublishSeries.setEnabled(True)
         self.textPublishSeriesIndex.setEnabled(True)
-        if len(book_info_list) == 1:
+        if len(self.bookInfoList) == 1:
             self.cover = book_info_list[0].cover_image
             self.cover_media_type = book_info_list[0].cover_media_type
             self.cover_file_name = book_info_list[0].cover_file_name
@@ -287,6 +287,7 @@ class BookInfoPanel(QWidget, Ui_BookInfoPanel):
 
         self.isDataChanged = False
         self.dataChanged.emit(self.isDataChanged)
+
 
     def getData(self):
         for bookInfo in self.bookInfoList:

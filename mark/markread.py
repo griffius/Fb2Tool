@@ -43,6 +43,8 @@ class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
 			self.lineSearch.setFocus()
 			self.inpAuthor.setText('')
 			self.inpTitle.setText('')
+		elif event.key() == QtCore.Qt.Key_Escape:
+			self.close()
 		event.accept()
 
 	def fill_list_book(self):
@@ -220,6 +222,7 @@ class Worker:
 		self.listbase.setCurrentRow(0)
 		self.fill_tags_book(self.listbase.currentItem())
 		self.total.setText(str(self.listbase.count()))
+		self.work.setText(str(len(self.worklist)))
 
 
 class Db:

@@ -105,6 +105,7 @@ select_book = '''
            translators, description, 
            publish_title, publish_publisher, publish_city, publish_year,
            publish_isbn, publish_series, publish_series_index, 
+           type,
            cover_image, cover_media_type, cover_file_name, file
       FROM books
     WHERE id = ?

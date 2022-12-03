@@ -1,12 +1,12 @@
+import subprocess
 from functools import partial
 import os
 import sys
 import traceback
-
+from showinfm import show_in_file_manager
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QApplication, QMenu, QAction, QWidget, QLabel
 from PyQt5.QtCore import Qt, QPoint, QCoreApplication, QTimer, QEvent, QSize
 from PyQt5.QtGui import QIcon, QKeySequence
-
 from .mainwindow_ui import Ui_MainWindow
 from .addfilesdialog import AddFilesDialog
 from .renamedialog import RenameDialog
@@ -17,15 +17,12 @@ from .convertdialog import ConvertDialog
 from .convertfilesdialog import ConvertFilesDialog
 from .runplugindialog import RunPluginDialog
 from .settingsdialog import SettingsDialog
-
 import config
 import database
 from plugin_collection import PluginCollection
 from .pluginform import PluginForm
 from mark.markread import MarkRead
-
 settings = config.settings
-
 
 _t = QCoreApplication.translate
 
@@ -46,11 +43,11 @@ class MainWindow (QMainWindow, Ui_MainWindow):
         self.setupUi(self)
 
         self.setWindowIcon(QIcon(':/icons/fb2tool_32px.png'))
-        
+
         self.splitter.setChildrenCollapsible(False)
         self.splitter.setStretchFactor(0, 0)
         self.splitter.setStretchFactor(1, 1)
-       
+
         if settings.ui_window_x and settings.ui_window_y:
             self.move(settings.ui_window_x, settings.ui_window_y)
 
@@ -65,11 +62,11 @@ class MainWindow (QMainWindow, Ui_MainWindow):
                 self.actionViewInfo_panel.setChecked(False)
                 self.prevSplitterSizes = settings.ui_splitter_sizes
                 self.onViewInfoPanel(False)
-        
+
         self.frameFilter.setVisible(settings.ui_filter_panel_visible)
         self.actionFilter_panel.setChecked(settings.ui_filter_panel_visible)
         self.isAutoApplyFilter = settings.ui_auto_apply_filter
-        
+
         self.textFilter.clicked.connect(self.onToolFilterMenu)
         self.textFilter.textChanged.connect(self.setFilterOnTextChanged)
         self.textFilter.returnPressed.connect(self.setFilterOnReturnPressed)
@@ -81,6 +78,7 @@ class MainWindow (QMainWindow, Ui_MainWindow):
         self.bookList.setHiddenColumns(settings.ui_hidden_columns)
         self.bookList.setHiddenColumnsWidth(settings.ui_hidden_columns_width)
         self.bookList.selectionModel().selectionChanged.connect(self.onBookListSelectionChanged)
+        self.bookList.doubleClicked.connect(self.onOpenFile)
 
         self.bookList.installEventFilter(self)
         self.bookList.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -152,7 +150,7 @@ class MainWindow (QMainWindow, Ui_MainWindow):
 
             if run_plugin:
                 self.wait()
-        
+
                 runPluginDialog = RunPluginDialog(self, plugin, book_info_list)
                 runPluginDialog.exec()
 
@@ -166,7 +164,7 @@ class MainWindow (QMainWindow, Ui_MainWindow):
                 else:
                     QMessageBox.information(self, 'Fb2Tool', _t('main',
                                                                     'Operation "{0}" complete').format(plugin.title()))
-                        
+
     def initPluginsMenu(self):
         for plugin in self.pluginCollection.plugins():
             try:
@@ -195,10 +193,37 @@ class MainWindow (QMainWindow, Ui_MainWindow):
         self.onToolbar_plugins()
         self.actionsSetEnabled()
 
+    def showInFileManager(self):
+        book_info_list = self.getSelectedBookList()
+        if len(book_info_list) == 1:
+            show_in_file_manager(book_info_list[0].file)
+
+    def copyToClipboard(self):
+        book_info_list = self.getSelectedBookList()
+        if len(book_info_list) == 1:
+            clipboard = QApplication.clipboard()
+            clipboard.clear(mode=clipboard.Clipboard)
+            clipboard.setText(book_info_list[0].file, mode=clipboard.Clipboard)
+
     def onBookListContextMenu(self, point):
+        book_info_list = self.getSelectedBookList()
         self.menu = QMenu()
         self.menu.addAction(self.actionRename)
         self.menu.addAction(self.actionConvert)
+        if len(book_info_list) == 1:
+            self.menu.addSeparator()
+            caption = ''
+            if sys.platform == 'win32':
+                caption = _t('main', 'Show in Windows Explorer')
+            elif sys.platform == 'darwin':
+                caption = _t('main', 'Show in Finder')
+            else:
+                caption = _t('main', 'Show in File Browser')
+
+            action = self.menu.addAction(caption)
+            action.triggered.connect(self.showInFileManager)
+            action = self.menu.addAction(_t('main', 'Copy file path to clipboard'))
+            action.triggered.connect(self.copyToClipboard)
         self.menu.addSeparator()
         for plugin in self.pluginCollection.plugins():
             try:
@@ -273,11 +298,11 @@ class MainWindow (QMainWindow, Ui_MainWindow):
             self.setFilter()
 
     def setFilter(self):
-        self.bookList.setFilter(self.textFilter.text())  
+        self.bookList.setFilter(self.textFilter.text())
 
     def onAddFiles(self):
-        result = QFileDialog.getOpenFileNames(self, 
-                                              caption=_t('main', 'Add files'), 
+        result = QFileDialog.getOpenFileNames(self,
+                                              caption=_t('main', 'Add files'),
                                               directory=settings.add_files_last_selected,
                                               filter=_t('main', 'Ebook files (*.fb2 *.fb2.zip *.epub);;All files (*.*)'))
         if len(result[0]) > 0:
@@ -295,7 +320,7 @@ class MainWindow (QMainWindow, Ui_MainWindow):
             for root, dir, files in os.walk(folder):
                 for file in files:
                     fileList.append(os.path.join(root, file))
-        
+
             self.AddFiles(fileList)
 
     def AddFiles(self, files):
@@ -449,7 +474,7 @@ class MainWindow (QMainWindow, Ui_MainWindow):
             renameDialog.backupBeforeRename = settings.rename_backup
             renameDialog.renameInSourceFolder = settings.rename_in_source_folder
             renameDialog.renameMoveToFolder = settings.rename_move_to_folder
-            
+
             if renameDialog.exec_():
                 self.wait()
                 moveFilesDialog = MoveFilesDialog(self,
@@ -465,7 +490,7 @@ class MainWindow (QMainWindow, Ui_MainWindow):
                 moveFilesDialog.exec()
                 self.bookList.updateRows()
                 self.stopWait()
-                
+
                 settings.rename_delete_source_files = renameDialog.deleteSourceFiles
                 settings.rename_overwrite = renameDialog.overwriteExistingFiles
                 settings.rename_backup = renameDialog.backupBeforeRename
@@ -487,12 +512,12 @@ class MainWindow (QMainWindow, Ui_MainWindow):
             config.save()
 
     def onConvert(self):
-        if (not settings.convert_converter_path or 
+        if (not settings.convert_converter_path or
                 (settings.convert_converter_path and not os.path.exists(settings.convert_converter_path))):
             QMessageBox.critical(self, 'Fb2Tool', _t('main', 'Check settings for fb2converter!'))
-            
+
             return
-       
+
         convertDialog = ConvertDialog(self)
         convertDialog.outputFormat = settings.convert_output_format
         convertDialog.outputPath = settings.convert_output_path
@@ -532,7 +557,7 @@ class MainWindow (QMainWindow, Ui_MainWindow):
 
             settings.convert_output_format = convertDialog.outputFormat
             settings.convert_output_path = convertDialog.outputPath
-            settings.convert_overwrite = convertDialog.overwrite 
+            settings.convert_overwrite = convertDialog.overwrite
             settings.convert_stk = convertDialog.stk
             settings.convert_path_list = convertDialog.convertPathList
             settings.convert_pack_output = convertDialog.packoutput
@@ -550,11 +575,15 @@ class MainWindow (QMainWindow, Ui_MainWindow):
         settingsDialog.defaultDir = settings.convert_default_dir
         settingsDialog.converterPath = settings.convert_converter_path
         settingsDialog.converterConfig = settings.convert_converter_config
+        settingsDialog.readerAppFb2 = settings.reader_app_fb2
+        settingsDialog.readerAppEpub = settings.reader_app_epub
 
         if settingsDialog.exec_():
             settings.convert_default_dir = settingsDialog.defaultDir
             settings.convert_converter_path = settingsDialog.converterPath
             settings.convert_converter_config = settingsDialog.converterConfig
+            settings.reader_app_fb2 = settingsDialog.readerAppFb2
+            settings.reader_app_epub = settingsDialog.readerAppEpub
         if settingsDialog.myclose:
             config.save()
             QMessageBox.information(self, 'Fb2Tool', _t('main', 'Settings has been saved'))
@@ -605,10 +634,10 @@ class MainWindow (QMainWindow, Ui_MainWindow):
         actionItem = QAction(_t('main', 'Auto-apply filter'), parent=menu, checkable=True, checked=self.isAutoApplyFilter)
         actionItem.setData('AutoApplyFilter')
         menu.addAction(actionItem)
-        
+
         menu_x = -1 * menu.sizeHint().width() + self.textFilter.width()
         menu_y = -1 * menu.sizeHint().height() - 2
-        
+
         action = menu.exec_(self.textFilter.mapToGlobal(QPoint(menu_x , menu_y)))
         if action:
             if action.data() == 'AutoApplyFilter':
@@ -665,7 +694,7 @@ class MainWindow (QMainWindow, Ui_MainWindow):
                     background-color: #f7f7f7
                 } 
             ''')
-        
+
         elif sys.platform == 'darwin':
             self.toolBar.setStyleSheet('''
                 #toolBar {
@@ -683,6 +712,23 @@ class MainWindow (QMainWindow, Ui_MainWindow):
                     border-right: 1px solid #ffffff;  
                     background-color: #f7f7f7}
             ''')
+
+    def onOpenFile(self):
+        reader_app = ''
+        book_list = self.getSelectedBookList()
+        if len(book_list) == 1:
+            if book_list[0].type == 'fb2':
+                reader_app = settings.reader_app_fb2
+            elif book_list[0].type == 'epub':
+                reader_app = settings.reader_app_epub
+
+            if reader_app:
+                self.wait()
+                args = []
+                args.append(reader_app)
+                args.append(book_list[0].file)
+                subprocess.Popen(args)
+                self.stopWait()
 
     def onAbout(self):
         about = AboutDialog(self)

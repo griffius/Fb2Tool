@@ -289,10 +289,11 @@ def get_book_info(book_id):
             book_rec.publish_series = q.value(15)
             book_rec.publish_series_index = q.value(16)
 
-            book_rec.cover_image = q.value(17)
-            book_rec.cover_media_type = q.value(18)
-            book_rec.cover_file_name = q.value(19)
-            book_rec.file = q.value(20)
+            book_rec.type = q.value(17)
+            book_rec.cover_image = q.value(18)
+            book_rec.cover_media_type = q.value(19)
+            book_rec.cover_file_name = q.value(20)
+            book_rec.file = q.value(21)
 
     else:
         raise Exception(traceback.format_exc() + ':\n' + q.lastError().text())
@@ -319,6 +320,7 @@ def _get_book_rec():
         publish_isbn=None,
         publish_series=None,
         publish_series_index=None,
+        type=None,
         cover_image=None,
         cover_media_type=None,
         cover_file_name=None,
