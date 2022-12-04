@@ -6,7 +6,7 @@ import traceback
 from showinfm import show_in_file_manager
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QApplication, QMenu, QAction, QWidget, QLabel
 from PyQt5.QtCore import Qt, QPoint, QCoreApplication, QTimer, QEvent, QSize
-from PyQt5.QtGui import QIcon, QKeySequence
+from PyQt5.QtGui import QIcon, QKeySequence, QColor
 from .mainwindow_ui import Ui_MainWindow
 from .addfilesdialog import AddFilesDialog
 from .renamedialog import RenameDialog
@@ -398,11 +398,11 @@ class MainWindow (QMainWindow, Ui_MainWindow):
         ost = len(self.bookList.selectionModel().selectedRows()) if ch else self.bookList.model().rowCount()
         ost %= 10
         if ost == 1 and n != 11:
-            return _t('main', '{0} {1} is choosen').format(str(ost), one) if ch else one
+            return _t('main', '{0} {1} is choosen').format(str(n), one) if ch else one
         elif 2 <= ost <= 4 or n == 11:
-            return _t('main', '{0} {1} are selected').format(str(ost), two) if ch else two
+            return _t('main', '{0} {1} are selected').format(str(n), two) if ch else two
         else:
-            return _t('main', '{0} {1} is selected').format(str(ost), five) if ch else five
+            return _t('main', '{0} {1} is selected').format(str(n), five) if ch else five
 
     def actionsSetEnabled(self):
         self.actionRename.setEnabled(self.actionsEnabled)
@@ -603,6 +603,7 @@ class MainWindow (QMainWindow, Ui_MainWindow):
         else:
             self.bookInfo.clear()
             self.actionsSetEnabled()
+            self.bookInfo.unvisible_cover_panel()
         self.sel_book.setText(self.onSklon(_t('main', 'book'), _t('main', 'books'), _t('main', 'books'), '1'))
         total = self.bookList.model().rowCount()
         sclon = self.onSklon(_t('main', 'book'), _t('main', 'books'), _t('main', 'books'))
