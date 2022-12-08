@@ -1,11 +1,13 @@
+import os.path
 import re
 import sqlite3
-
+import datetime
+import time
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMessageBox
-
+from ebookmeta.myzipfile import ZipFile, ZIP_DEFLATED
 from .config_mark import settings, init, load, save
 from .markread_ui import Ui_MarkRead
 from .settingsdialog import SettingsDialog
@@ -20,7 +22,7 @@ class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
 		load()
 		self.db = Db(self.inpTotal)
 		self.w = Worker(self.fill_list_book, self.fill_tags_book, self.lineSearch, self.listBase, self.inpTotal,
-						self.inpWork)
+						self.inpWork, self.db.backup_db)
 		self.fill_list_book()
 		self.listBase.itemDoubleClicked.connect(self.check_item)
 		self.listBase.itemClicked.connect(self.fill_tags_book)
@@ -68,10 +70,14 @@ class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
 		else:
 			item.setCheckState(QtCore.Qt.Checked)
 
-	def fill_tags_book(self, item):
-		tags_book = str(item.text()).split(' - ')
-		self.inpAuthor.setText(tags_book[0])
-		self.inpTitle.setText(tags_book[-1])
+	def fill_tags_book(self, item, s=1):
+		if s == 1:
+			tags_book = str(item.text()).split(' - ')
+			self.inpAuthor.setText(tags_book[0])
+			self.inpTitle.setText(tags_book[-1])
+		else:
+			self.inpAuthor.clear()
+			self.inpTitle.clear()
 
 	def selection(self, p):
 		items = range(self.listBase.count())
@@ -95,8 +101,6 @@ class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
 		settingsDialog.searchBase = settings.search_base
 		settingsDialog.searchQuery = settings.search
 		settingsDialog.markQueryMyhomelib = settings.mark_myhomelib
-		settingsDialog.markQueryCalibre1 = settingsDialog.load_query_calibre('query1')
-		settingsDialog.markQueryCalibre2 = settingsDialog.load_query_calibre('query2')
 
 		if settingsDialog.exec_():
 			settings.check_Myhomelib = settingsDialog.checker_Myhomelib
@@ -106,15 +110,13 @@ class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
 			settings.search_base = settingsDialog.searchBase
 			settings.search = settingsDialog.searchQuery
 			settings.mark_myhomelib = settingsDialog.markQueryMyhomelib
-			settingsDialog.save_query_calibre('query1', settingsDialog.markQueryCalibre1)
-			settingsDialog.save_query_calibre('query2', settingsDialog.markQueryCalibre2)
 		if settingsDialog.myclose:
 			save()
 			self.fill_list_book()
 
 
 class Worker:
-	def __init__(self, booklist, taglist, search, listbase, total, work):
+	def __init__(self, booklist, taglist, search, listbase, total, work, backup_db):
 		super().__init__()
 		self.worklist = []
 		self.fill_list_book = booklist
@@ -123,13 +125,14 @@ class Worker:
 		self.listbase = listbase
 		self.total = total
 		self.work = work
+		self.backup_db = backup_db
 
 	def mark_books(self):
 		values = self.get_selected_books()
 		if settings.check_Myhomelib:
 			self.check_read_status_selected_books(values, settings.myhomelib, 'MyHomeLib', settings.mark_myhomelib)
 		if settings.check_Calibre:
-			self.check_read_status_selected_books(values, settings.calibre, 'Calibre', settings.mark_calibre["query1"],
+			self.check_read_status_selected_books(values, settings.calibre, 'calibre', settings.mark_calibre["query1"],
 												  settings.mark_calibre["query2"])
 		QMessageBox.information(MarkRead(), 'Успешно', 'Отметки прочтения выставлены для книг\n' + '\n'.join(values))
 		self.fill_list_book()
@@ -144,13 +147,14 @@ class Worker:
 
 	def check_read_status_selected_books(self, values, db, program, query, subquery='', sqlite_connection=None):
 		try:
+			self.backup_db(db, program)
 			sqlite_connection = sqlite3.connect(db)
 			cursor = sqlite_connection.cursor()
 			for value in values:
 				search = query + '"' + value.split(' - ')[1] + '";'
 				if program == 'MyHomeLib':
 					cursor.execute(search)
-				elif program == 'Calibre':
+				elif program == 'calibre':
 					cursor.execute(search)
 					res_idx = cursor.fetchall()
 					idx = str(res_idx[0][0])
@@ -220,7 +224,8 @@ class Worker:
 		self.listbase.setStyleSheet('background-color: rgb(255, 255, 255);')
 		self.fill_list_book()
 		self.listbase.setCurrentRow(0)
-		self.fill_tags_book(self.listbase.currentItem())
+		self.fill_tags_book(self.listbase.currentItem(), s=0)
+		self.listbase.clearFocus()
 		self.total.setText(str(self.listbase.count()))
 		self.work.setText(str(len(self.worklist)))
 
@@ -264,3 +269,38 @@ class Db:
 		finally:
 			if sqlite_connection:
 				sqlite_connection.close()
+
+	def backup_db(self, db, directory):
+		normal_path = os.path.normpath(os.path.join(settings.location_backup, directory))
+		date_backup = time.strftime('%Y%m%d%H%M%S')
+		name_backup = "{0}.zip".format(os.path.normpath(os.path.join(normal_path, 'Backup_' + date_backup)))
+		if not os.path.exists(normal_path):
+			os.mkdir(normal_path)
+		aBackupList = os.listdir(normal_path)
+		if len(aBackupList) > 0:
+			aTablesBackup = []
+			for i in range(len(aBackupList)):
+				filename = os.path.normpath(os.path.join(normal_path, aBackupList[i]))
+				date_create = os.path.getctime(filename)
+				date = datetime.datetime.fromtimestamp(date_create).strftime('%Y%m%d%H%M%S')
+				elem = (filename, date)
+				aTablesBackup.append(elem)
+			aTablesBackup.sort(key=lambda x: x[1], reverse=True)
+			counter = len(aBackupList)
+			if counter >= settings.count_backup:
+				count = settings.count_backup - 1
+				while counter > count:
+					os.remove(aTablesBackup[-1][0])
+					aTablesBackup.pop(-1)
+					counter -= 1
+					zipp = ZipFile(name_backup, mode='w', compression=ZIP_DEFLATED)
+					zipp.write(db)
+					zipp.close()
+			else:
+				zipp = ZipFile(name_backup, mode='w', compression=ZIP_DEFLATED)
+				zipp.write(db, os.path.basename(db))
+				zipp.close()
+		else:
+			zipp = ZipFile(name_backup, mode='w', compression=ZIP_DEFLATED)
+			zipp.write(db)
+			zipp.close()
