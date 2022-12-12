@@ -94,6 +94,9 @@ class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
 
 	def onSettings(self):
 		settingsDialog = SettingsDialog(self)
+		settingsDialog.pathBasesCollapsed = settings.ui_path_bases_collapsed
+		settingsDialog.queryBasesCollapsed = settings.ui_query_bases_collapsed
+		settingsDialog.backupBasesCollapsed = settings.ui_backup_bases_collapsed
 		settingsDialog.checker_Myhomelib = settings.check_Myhomelib
 		settingsDialog.myhomelib = settings.myhomelib
 		settingsDialog.checker_Calibre = settings.check_Calibre
@@ -101,8 +104,14 @@ class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
 		settingsDialog.searchBase = settings.search_base
 		settingsDialog.searchQuery = settings.search
 		settingsDialog.markQueryMyhomelib = settings.mark_myhomelib
+		settingsDialog.checker_Backup = settings.create_backup
+		settingsDialog.count_Backup = settings.count_backup
+		settingsDialog.path_Backup = settings.location_backup
 
 		if settingsDialog.exec_():
+			settings.ui_path_bases_collapsed = settingsDialog.pathBasesCollapsed
+			settings.ui_query_bases_collapsed = settingsDialog.queryBasesCollapsed
+			settings.ui_backup_bases_collapsed = settingsDialog.backupBasesCollapsed
 			settings.check_Myhomelib = settingsDialog.checker_Myhomelib
 			settings.myhomelib = settingsDialog.myhomelib
 			settings.check_Calibre = settingsDialog.checker_Calibre
@@ -110,6 +119,9 @@ class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
 			settings.search_base = settingsDialog.searchBase
 			settings.search = settingsDialog.searchQuery
 			settings.mark_myhomelib = settingsDialog.markQueryMyhomelib
+			settings.create_backup = settingsDialog.checker_Backup
+			settings.count_backup = settingsDialog.count_Backup
+			settings.location_backup = settingsDialog.path_Backup
 		if settingsDialog.myclose:
 			save()
 			self.fill_list_book()

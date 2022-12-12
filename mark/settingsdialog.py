@@ -1,5 +1,6 @@
 import os
 from PyQt5 import QtWidgets
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMessageBox, QFileDialog
 from .config_mark import settings
 from .setting_markread_ui import Ui_settings_mark
@@ -18,6 +19,56 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 		self.toolCalibre.clicked.connect(self.onToolCalibreBase)
 		self.cmbBases.currentIndexChanged.connect(self.OnVisibleQuerySearchControls)
 		self.toolSelectQuery.clicked.connect(self.selectQueryCalibre)
+		self.checkBackup.stateChanged.connect(self.onIsCheckerBackup)
+		self.togglePathBases.clicked.connect(self.onPathBasesToggle)
+		self.toggleQueryBases.clicked.connect(self.onQueryBasesToggle)
+		self.toggleBackupBases.clicked.connect(self.onBackupBasesToggle)
+		head_style = 'QToolButton {border: 1px solid black; padding: 3px; color: #1E395B;}'  # #1e395b
+		self.togglePathBases.setStyleSheet(head_style)
+		self.toggleQueryBases.setStyleSheet(head_style)
+		self.toggleBackupBases.setStyleSheet(head_style)
+
+	@property
+	def pathBasesCollapsed(self):
+		return not self.widgetPathBases.isVisible()
+
+	@pathBasesCollapsed.setter
+	def pathBasesCollapsed(self, value):
+		if value:
+			self.widgetPathBases.setVisible(False)
+			self.togglePathBases.setArrowType(Qt.RightArrow)
+		else:
+			self.widgetPathBases.setVisible(True)
+			self.togglePathBases.setArrowType(Qt.DownArrow)
+		self.adjustSize()
+
+	@property
+	def queryBasesCollapsed(self):
+		return not self.widgetQueryBases.isVisible()
+
+	@queryBasesCollapsed.setter
+	def queryBasesCollapsed(self, value):
+		if value:
+			self.widgetQueryBases.setVisible(False)
+			self.toggleQueryBases.setArrowType(Qt.RightArrow)
+		else:
+			self.widgetQueryBases.setVisible(True)
+			self.toggleQueryBases.setArrowType(Qt.DownArrow)
+		self.adjustSize()
+
+	@property
+	def backupBasesCollapsed(self):
+		return not self.widgetBackupBases.isVisible()
+
+	@backupBasesCollapsed.setter
+	def backupBasesCollapsed(self, value):
+		if value:
+			self.widgetBackupBases.setVisible(False)
+			self.toggleBackupBases.setArrowType(Qt.RightArrow)
+		else:
+			self.widgetBackupBases.setVisible(True)
+			self.toggleBackupBases.setArrowType(Qt.DownArrow)
+		self.adjustSize()
 
 	@property
 	def checker_Myhomelib(self):
@@ -77,6 +128,30 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 	def markQueryMyhomelib(self, value):
 		self.textQueryMarkMyhomelib.setPlainText(value)
 
+	@property
+	def checker_Backup(self):
+		return self.checkBackup.isChecked()
+
+	@checker_Backup.setter
+	def checker_Backup(self, value):
+		self.checkBackup.setChecked(value)
+
+	@property
+	def count_Backup(self):
+		return self.spinBox.value()
+
+	@count_Backup.setter
+	def count_Backup(self, value):
+		self.spinBox.setValue(value)
+
+	@property
+	def path_Backup(self):
+		return self.textPathBackup.text()
+
+	@path_Backup.setter
+	def path_Backup(self, value):
+		self.textPathBackup.setText(value)
+
 	def OnIsCheckedMyhomelib(self):
 		flags = self.checkMyhomelib.isChecked()
 		self.inpMyhomelib.setEnabled(flags)
@@ -90,7 +165,7 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 
 	def onToolMyhomelibBase(self):
 		data = self.inpMyhomelib.text()
-		result = QFileDialog.getOpenFileName(self, caption='Select base MyHomeLib', directory='D:/',
+		result = QFileDialog.getOpenFileName(self, caption='Выберите файл базы книг MyHomeLib', directory='D:/',
 												  filter='MyHomeLib base (*.hlc2);;All files(*.*)')
 		if result:
 			self.inpMyhomelib.setText(result[0]) if result[0] else self.inpMyhomelib.setText(data)
@@ -122,7 +197,7 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 
 	def onToolCalibreBase(self):
 		data = self.inpCalibre.text()
-		result = QFileDialog.getOpenFileName(self, caption='Select base Calibre', directory='D:/',
+		result = QFileDialog.getOpenFileName(self, caption='Выберите файл базы книг Calibre', directory='D:/',
 												  filter='MyHomeLib base (metadata.db);;All files(*.*)')
 		if result:
 			self.inpCalibre.setText(result[0]) if result[0] else self.inpCalibre.setText(data)
@@ -135,6 +210,14 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 			self.textQuerySearch.setEnabled(False)
 			self.lblQuerySearch.setEnabled(False)
 			self.textQuerySearch.clear()
+
+	def onIsCheckerBackup(self):
+		flags = self.checkBackup.isChecked()
+		self.lblCountBackup.setEnabled(flags)
+		self.spinBox.setEnabled(flags)
+		self.lblPathBackup.setEnabled(flags)
+		self.textPathBackup.setEnabled(flags)
+		self.toolPathBackup.setEnabled(flags)
 
 	def closeEvent(self, e):
 		self.myclose = False
@@ -152,6 +235,32 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 
 	def save_query_calibre(self, key):
 		settings.mark_calibre[key] = self.textQueryMarkCalibre.toPlainText()
+
+	def onPathBasesToggle(self):
+		if self.widgetPathBases.isVisible():
+			self.widgetPathBases.setVisible(False)
+			self.togglePathBases.setArrowType(Qt.RightArrow)
+		else:
+			self.widgetPathBases.setVisible(True)
+			self.togglePathBases.setArrowType(Qt.DownArrow)
+		self.adjustSize()
+	def onQueryBasesToggle(self):
+		if self.widgetQueryBases.isVisible():
+			self.widgetQueryBases.setVisible(False)
+			self.toggleQueryBases.setArrowType(Qt.RightArrow)
+		else:
+			self.widgetQueryBases.setVisible(True)
+			self.toggleQueryBases.setArrowType(Qt.DownArrow)
+		self.adjustSize()
+
+	def onBackupBasesToggle(self):
+		if self.widgetBackupBases.isVisible():
+			self.widgetBackupBases.setVisible(False)
+			self.toggleBackupBases.setArrowType(Qt.RightArrow)
+		else:
+			self.widgetBackupBases.setVisible(True)
+			self.toggleBackupBases.setArrowType(Qt.DownArrow)
+		self.adjustSize()
 
 	def accept(self):
 		if self.checker_Myhomelib:

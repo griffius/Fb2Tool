@@ -12,6 +12,9 @@ else:
 config_mark_file = os.path.join(config_path, 'markread.json')
 
 settings = SimpleNamespace(
+	ui_path_bases_collapsed=False,
+	ui_query_bases_collapsed=False,
+	ui_backup_bases_collapsed=False,
 	check_Myhomelib=False,
 	myhomelib=None,
 	check_Calibre=False,
