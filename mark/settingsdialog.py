@@ -20,6 +20,7 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 		self.cmbBases.currentIndexChanged.connect(self.OnVisibleQuerySearchControls)
 		self.toolSelectQuery.clicked.connect(self.selectQueryCalibre)
 		self.checkBackup.stateChanged.connect(self.onIsCheckerBackup)
+		self.toolPathBackup.clicked.connect(self.onToolPathBackup)
 		self.togglePathBases.clicked.connect(self.onPathBasesToggle)
 		self.toggleQueryBases.clicked.connect(self.onQueryBasesToggle)
 		self.toggleBackupBases.clicked.connect(self.onBackupBasesToggle)
@@ -219,6 +220,13 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 		self.textPathBackup.setEnabled(flags)
 		self.toolPathBackup.setEnabled(flags)
 
+	def onToolPathBackup(self):
+		data = self.textPathBackup.text()
+		result = QFileDialog.getExistingDirectory(self, caption='Выберите папку для сохранений резервных копий баз',
+												  directory='D:/')
+		if result:
+			self.textPathBackup.setText(os.path.normpath(result)) if result[0] else self.textPathBackup.setText(data)
+
 	def closeEvent(self, e):
 		self.myclose = False
 		self.close()
@@ -244,6 +252,7 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 			self.widgetPathBases.setVisible(True)
 			self.togglePathBases.setArrowType(Qt.DownArrow)
 		self.adjustSize()
+
 	def onQueryBasesToggle(self):
 		if self.widgetQueryBases.isVisible():
 			self.widgetQueryBases.setVisible(False)
@@ -282,5 +291,9 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 		if self.textQueryMarkCalibre.isEnabled():
 			if self.textQueryMarkCalibre.toPlainText() == '':
 				QMessageBox.critical(self, 'Markread', 'Запрос для установки отметки для базы Calibre не может быть пустым')
+				return False
+		if self.checker_Backup:
+			if not os.path.exists(self.path_Backup):
+				QMessageBox.critical(self, 'Markread', 'Папка для резервных копий не существует или не выбрана')
 				return False
 		return super().accept()
