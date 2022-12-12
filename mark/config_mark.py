@@ -25,7 +25,7 @@ settings = SimpleNamespace(
 	mark_calibre={},
 	create_backup=False,
 	location_backup=None,
-	count_backup=None
+	count_backup=0
 )
 
 

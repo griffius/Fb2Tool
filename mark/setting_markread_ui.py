@@ -20,6 +20,7 @@ class Ui_settings_mark(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(settings_mark.sizePolicy().hasHeightForWidth())
         settings_mark.setSizePolicy(sizePolicy)
+        settings_mark.setMinimumSize(QtCore.QSize(500, 0))
         settings_mark.setWindowTitle("Настройки MarkRead")
         settings_mark.setToolTip("")
         settings_mark.setStatusTip("")
