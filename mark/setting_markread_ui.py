@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_settings_mark(object):
     def setupUi(self, settings_mark):
         settings_mark.setObjectName("settings_mark")
-        settings_mark.resize(500, 592)
+        settings_mark.resize(519, 602)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -28,7 +28,6 @@ class Ui_settings_mark(object):
         settings_mark.setAccessibleName("")
         settings_mark.setAccessibleDescription("")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(settings_mark)
-        self.verticalLayout_4.setSizeConstraint(QtWidgets.QLayout.SetMinAndMaxSize)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
         self.togglePathBases = QtWidgets.QToolButton(settings_mark)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
@@ -189,7 +188,7 @@ class Ui_settings_mark(object):
         self.toggleQueryBases.setAccessibleName("")
         self.toggleQueryBases.setAccessibleDescription("")
         self.toggleQueryBases.setStyleSheet("QToolButton {border: 2px solid black}")
-        self.toggleQueryBases.setText("Настройка путей к базам")
+        self.toggleQueryBases.setText("Настройка запросов к базам")
         self.toggleQueryBases.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         self.toggleQueryBases.setArrowType(QtCore.Qt.DownArrow)
         self.toggleQueryBases.setObjectName("toggleQueryBases")

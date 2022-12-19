@@ -50,5 +50,7 @@ def load():
 		with codecs.open(config_mark_file, 'r', encoding='utf-8') as f:
 			c = json.loads(f.read())
 
+		# for key in c[profile]:
+		# 	settings.__dict__[key] = c[profile][key]
 		for key in c:
 			settings.__dict__[key] = c[key]

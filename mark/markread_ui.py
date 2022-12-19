@@ -343,6 +343,7 @@ class Ui_MarkRead(object):
         self.toolBar.addAction(self.actionShowWorkList)
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.actionMarkReadSelected)
+        self.toolBar.addSeparator()
 
         self.retranslateUi(MarkRead)
         self.actionSettings.triggered.connect(MarkRead.onSettings) # type: ignore

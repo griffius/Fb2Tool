@@ -6,7 +6,7 @@ import time
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QMessageBox, QComboBox
 from ebookmeta.myzipfile import ZipFile, ZIP_DEFLATED
 from .config_mark import settings, init, load, save
 from .markread_ui import Ui_MarkRead
@@ -18,6 +18,7 @@ class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
 		super().__init__()
 		self.setupUi(self)
 		self.setWindowIcon(QIcon(':/icons/markread_32px.png'))
+		# self.profiles()
 		init()
 		load()
 		self.db = Db(self.inpTotal)
@@ -48,6 +49,11 @@ class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
 		elif event.key() == QtCore.Qt.Key_Escape:
 			self.close()
 		event.accept()
+
+	def profiles(self):
+		self.fontSizeSpinBox = QComboBox()
+		self.fontSizeSpinBox.setFocusPolicy(Qt.NoFocus)
+		self.toolBar.addWidget(self.fontSizeSpinBox)
 
 	def fill_list_book(self):
 		self.listBase.clear()
@@ -130,6 +136,7 @@ class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
 class Worker:
 	def __init__(self, booklist, taglist, search, listbase, total, work, backup_db):
 		super().__init__()
+		self.w = False
 		self.worklist = []
 		self.fill_list_book = booklist
 		self.fill_tags_book = taglist
@@ -147,7 +154,6 @@ class Worker:
 			self.check_read_status_selected_books(values, settings.calibre, 'calibre', settings.mark_calibre["query1"],
 												  settings.mark_calibre["query2"])
 		QMessageBox.information(MarkRead(), 'Успешно', 'Отметки прочтения выставлены для книг\n' + '\n'.join(values))
-		self.fill_list_book()
 
 	def get_selected_books(self):
 		self.checkeditems = []
@@ -157,9 +163,13 @@ class Worker:
 				self.checkeditems.append(self.listbase.item(i).text())
 		return self.checkeditems
 
-	def check_read_status_selected_books(self, values, db, program, query, subquery='', sqlite_connection=None):
+	def check_read_status_selected_books(self, values, db, program, query, subquery='', sqlite_connection=None,
+										 current=None):
 		try:
-			self.backup_db(db, program)
+			dirs = None
+			if not current:
+				dirs = os.path.join('backup_libraly_bases', 'MarkRead', program)
+			self.backup_db(db, dirs)
 			sqlite_connection = sqlite3.connect(db)
 			cursor = sqlite_connection.cursor()
 			for value in values:
@@ -171,6 +181,8 @@ class Worker:
 					res_idx = cursor.fetchall()
 					idx = str(res_idx[0][0])
 					cursor.execute(subquery + idx + ', 1);')
+				if self.w:
+					self.del_books_from_worklist()
 			sqlite_connection.commit()
 		except sqlite3.Error:
 			QMessageBox.critical(MarkRead(), 'Ошибка', 'Нет соединения с базой ' + db)
@@ -228,6 +240,7 @@ class Worker:
 			self.fill_tags_book(self.listbase.currentItem())
 			self.total.setText(str(self.listbase.count()))
 			self.work.setText(str(len(self.worklist)))
+			self.w = True
 		else:
 			QMessageBox.warning(MarkRead(), 'Ошибка', 'Список для обработки пуст')
 
@@ -235,11 +248,9 @@ class Worker:
 		self.listbase.clear()
 		self.listbase.setStyleSheet('background-color: rgb(255, 255, 255);')
 		self.fill_list_book()
-		self.listbase.setCurrentRow(0)
-		self.fill_tags_book(self.listbase.currentItem(), s=0)
-		self.listbase.clearFocus()
 		self.total.setText(str(self.listbase.count()))
 		self.work.setText(str(len(self.worklist)))
+		self.w = False
 
 
 class Db:
