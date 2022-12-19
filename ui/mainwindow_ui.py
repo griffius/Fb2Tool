@@ -286,7 +286,6 @@ class Ui_MainWindow(object):
         self.actionSettings.setText(_translate("MainWindow", "Settings"))
         self.actionViewStatusbar.setText(_translate("MainWindow", "Statusbar"))
         self.actionMark_read.setText(_translate("MainWindow", "MarkRead"))
-        self.actionMark_read.setShortcut(_translate("MainWindow", "Ctrl+F2"))
 from .bookinfopanel import BookInfoPanel
 from .booktableview import BookTableView
 from .customcontrols import ButtonLineEdit

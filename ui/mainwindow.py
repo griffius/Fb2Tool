@@ -29,7 +29,6 @@ _t = QCoreApplication.translate
 
 class MainWindow (QMainWindow, Ui_MainWindow):
     def __init__(self):
-        self.markread = None
         self.menu = None
         config.init()
         config.load()
@@ -101,8 +100,6 @@ class MainWindow (QMainWindow, Ui_MainWindow):
 
         self.bookInfo.mainInfoCollapsed = settings.ui_main_info_collapsed
         self.bookInfo.publishInfoCollapsed = settings.ui_publish_info_collapsed
-        self.bookInfo.coverInfoCollapsed = settings.ui_cover_info_collapsed
-        self.bookInfo.descriptionInfoCollapsed = settings.ui_description_info_collapsed
 
         QTimer.singleShot(1, self.loadFilesFromCommandLine)
 
@@ -114,13 +111,11 @@ class MainWindow (QMainWindow, Ui_MainWindow):
         self.actionsSetEnabled()
         self.onToolbar_plugins()
         self.statusbar()
-        self.mark_enable()
+        self.actionMark_read.setVisible(self.mark_enable())
 
     def mark_enable(self):
-        if os.path.isfile(os.path.join(config.config_path, 'markread')):
-            self.actionMark_read.setVisible(True)
-        else:
-            self.actionMark_read.setVisible(False)
+        flag = True if os.path.isfile(os.path.join(config.config_path, 'markread')) else False
+        return flag
 
     def statusbar(self):
         self.total = QLabel(_t('main', 'List is empty'))
@@ -136,21 +131,17 @@ class MainWindow (QMainWindow, Ui_MainWindow):
         if len(book_info_list):
             try:
                 plugin.init()
-                pluginForm = PluginForm(self, plugin.params(), title=plugin.title())
-                if pluginForm.exec_():
-                    plugin_params = pluginForm.getParams()
-                    plugin.set_params(plugin_params)
-                    plugin.validate()
-                else:
+                pluginForm = PluginForm(self, plugin)
+                if not pluginForm.exec_():
                     run_plugin = False
-            except:
+            except Exception:
                 run_plugin = False
-                errorDialog = TextViewDialog(self, [{'src': None, 'dest': None, 'error': traceback.format_exc()}])
+                errorDialog = TextViewDialog(self, [{ 'src': None, 'dest': None, 'error': traceback.format_exc()}])
                 errorDialog.exec()
 
             if run_plugin:
                 self.wait()
-
+        
                 runPluginDialog = RunPluginDialog(self, plugin, book_info_list)
                 runPluginDialog.exec()
 
@@ -175,8 +166,10 @@ class MainWindow (QMainWindow, Ui_MainWindow):
                     action.setShortcut(QKeySequence(plugin.hotkey()))
                 action.setIcon(QIcon(plugin.icon))
                 action.triggered.connect(partial(self.runPlugin, action))
-            except Exception as e:
-                print(e)
+            except Exception:
+                errorDialog = TextViewDialog(self, [{ 'src': None, 'dest': None, 'error': traceback.format_exc()}])
+                errorDialog.exec()
+
         self.menuTools.addSeparator()
         action = self.menuTools.addAction(_t('main', 'Reload plugins'))
         action.setIcon(QIcon(':/icons/reload_plugins_30px.png'))
@@ -281,8 +274,13 @@ class MainWindow (QMainWindow, Ui_MainWindow):
             if sys.argv[1] == "def":
                 self.addFilesAndDirs("def")
             elif sys.argv[1] == "markread":
-                self.close()
-                self.onMarkRead()
+                if self.mark_enable():
+                    self.close()
+                    self.onMarkRead()
+                else:
+                    self.close()
+                    QMessageBox.warning(MarkRead(), "Ошибка", "Для запуска все еще чего-то не хватает")
+                    self.onExit()
             else:
                 self.addFilesAndDirs(sys.argv[1:])
 
@@ -389,7 +387,7 @@ class MainWindow (QMainWindow, Ui_MainWindow):
             self.bookInfo.setData(book_info_list)
         else:
             self.actionsEnabled = False
-            self.bookInfo.unvisible_cover_panel()
+            self.bookInfo.unvisible_panels()
         self.sel_book.setText(self.onSklon(_t('main', 'book'), _t('main', 'books'), _t('main', 'books'), '1'))
         self.actionsSetEnabled()
 
@@ -603,7 +601,7 @@ class MainWindow (QMainWindow, Ui_MainWindow):
         else:
             self.bookInfo.clear()
             self.actionsSetEnabled()
-            self.bookInfo.unvisible_cover_panel()
+            self.bookInfo.unvisible_panels()
         self.sel_book.setText(self.onSklon(_t('main', 'book'), _t('main', 'books'), _t('main', 'books'), '1'))
         total = self.bookList.model().rowCount()
         sclon = self.onSklon(_t('main', 'book'), _t('main', 'books'), _t('main', 'books'))
@@ -774,8 +772,6 @@ class MainWindow (QMainWindow, Ui_MainWindow):
         settings.ui_toolbar_icon_size = 'small' if self.actionToolbarIconSmall.isChecked() else 'large'
         settings.ui_main_info_collapsed = self.bookInfo.mainInfoCollapsed
         settings.ui_publish_info_collapsed = self.bookInfo.publishInfoCollapsed
-        settings.ui_cover_info_collapsed = self.bookInfo.coverInfoCollapsed
-        settings.ui_description_info_collapsed = self.bookInfo.descriptionInfoCollapsed
         if self.actionViewInfo_panel.isChecked():
             settings.ui_splitter_sizes = self.splitter.sizes()
         else:

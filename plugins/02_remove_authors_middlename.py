@@ -12,15 +12,12 @@ class RemoveAuthorMiddleName(MetaPlugin):
         self.pane = True
         self.icon = icons_path + '/del_middlename.png'
 
-    def validate(self):
-        pass
-
     def perform_operation(self, meta):
         new_authors = []
 
         for author in meta.author_list:
             author_part = author.split()
-            if len(author_part) == 3: # У автора есть отчество
+            if len(author_part) == 3:  # У автора есть отчество
                 new_author = author_part[0] + ' ' + author_part[2]
                 new_authors.append(new_author)
             else:

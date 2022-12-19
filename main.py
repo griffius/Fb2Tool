@@ -1,25 +1,31 @@
 import os
 import sys
+
+
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QFont
-from PyQt5.QtCore import QLocale, QTranslator
+from PyQt5.QtCore import QLocale, QTranslator, QCoreApplication, Qt
 from ui.mainwindow import MainWindow
 
 
 def main():
+    if hasattr(Qt, 'AA_EnableHighDpiScaling'):
+        QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+    if hasattr(Qt, 'AA_UseHighDpiPixmaps'):
+        QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
     app = QApplication(sys.argv)
     if getattr(sys, 'frozen', False):
         app_path = os.path.dirname(sys.executable)
     else:
         app_path = os.path.dirname(__file__)
     
-    locale = QLocale.system().name()
+    # locale = QLocale.system().name()
     # app_locale = os.path.join(app_path, 'locale/Fb2Tool_' + locale + '.qm')
     app_locale = os.path.join(app_path, 'locale/Fb2Tool_ru_RU.qm')
     # qt_locale = os.path.join(app_path, 'locale/qtbase_' + locale + '.qm')
     qt_locale = os.path.join(app_path, 'locale/qtbase_ru_RU.qm')
 
-    if sys.platform == 'win32':
+    if sys.platform == 'win32' or sys.platform == 'win64':
         app_font = QFont('Segoe UI', 9)
         QApplication.setFont(app_font)
 

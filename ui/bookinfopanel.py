@@ -23,50 +23,24 @@ class BookInfoPanel(QWidget, Ui_BookInfoPanel):
     @property
     def publishInfoCollapsed(self):
         return not self.widgetPublishInfo.isVisible()
-    
-    @property
-    def coverInfoCollapsed(self):
-        return not self.widgetCoverInfo.isVisible()
-
-    @property
-    def descriptionInfoCollapsed(self):
-        return not self.widgetDescriptionInfo.isVisible()
 
     @mainInfoCollapsed.setter
     def mainInfoCollapsed(self, value):
         if value:
             self.widgetMain.setVisible(False)
-            self.toggleMainInfo.setIcon(QIcon(':/icons/collapsed_16px.png'))
+            self.toggleMainInfo.setArrowType(Qt.RightArrow)
         else:
             self.widgetMain.setVisible(True)
-            self.toggleMainInfo.setIcon(QIcon(':/icons/expanded_16px.png'))
+            self.toggleMainInfo.setArrowType(Qt.DownArrow)
 
     @publishInfoCollapsed.setter
     def publishInfoCollapsed(self, value):
         if value:
             self.widgetPublishInfo.setVisible(False)
-            self.togglePublishInfo.setIcon(QIcon(':/icons/collapsed_16px.png'))
+            self.togglePublishInfo.setArrowType(Qt.RightArrow)
         else:
             self.widgetPublishInfo.setVisible(True)
-            self.togglePublishInfo.setIcon(QIcon(':/icons/expanded_16px.png'))        
-    
-    @coverInfoCollapsed.setter
-    def coverInfoCollapsed(self, value):
-        if value:
-            self.widgetCoverInfo.setVisible(False)
-            self.toggleCoverInfo.setIcon(QIcon(':/icons/collapsed_16px.png'))
-        else:
-            self.widgetCoverInfo.setVisible(True)
-            self.toggleCoverInfo.setIcon(QIcon(':/icons/expanded_16px.png'))
-
-    @descriptionInfoCollapsed.setter
-    def descriptionInfoCollapsed(self, value):
-        if value:
-            self.widgetDescriptionInfo.setVisible(False)
-            self.toggleDescription.setIcon(QIcon(':/icons/collapsed_16px.png'))
-        else:
-            self.widgetDescriptionInfo.setVisible(True)
-            self.toggleDescription.setIcon(QIcon(':/icons/expanded_16px.png'))       
+            self.togglePublishInfo.setArrowType(Qt.DownArrow)
 
     def __init__(self, parent):
         super(BookInfoPanel, self).__init__(parent)
@@ -75,6 +49,7 @@ class BookInfoPanel(QWidget, Ui_BookInfoPanel):
         self.cover = None
         self.cover_media_type = None
         self.cover_file_name = None
+        self.description = None
         self.isDataChanged = False
         self.dataChanged.emit(self.isDataChanged)
         self.bookInfoList = []
@@ -118,11 +93,12 @@ class BookInfoPanel(QWidget, Ui_BookInfoPanel):
         self.labelCoverImage.customContextMenuRequested[QPoint].connect(self.coverContextMenu)
         self.setPlatformUI()
 
-        head_style = 'QToolButton {border: 0px; padding: 2px; color: #1E395B; }'  # #1e395b
+        head_style = 'QToolButton {border: 1px solid black; padding: 2px; color: #1E395B; }'  # #1e395b
         self.toggleCoverInfo.setStyleSheet(head_style)
         self.toggleMainInfo.setStyleSheet(head_style)
         self.togglePublishInfo.setStyleSheet(head_style)
         self.toggleDescription.setStyleSheet(head_style)
+        self.set_description()
         
     def coverContextMenu(self, point):
         menu = QMenu()
@@ -274,21 +250,25 @@ class BookInfoPanel(QWidget, Ui_BookInfoPanel):
             self.cover = book_info_list[0].cover_image
             self.cover_media_type = book_info_list[0].cover_media_type
             self.cover_file_name = book_info_list[0].cover_file_name
-            self.textDescription.setText(book_info_list[0].description.strip())
-            
+            self.description = book_info_list[0].description
+            self.set_description()
+            if self.description:
+                self.textDescription.setText(book_info_list[0].description.strip())
             self.setCoverImage()
             self.labelCoverImage.setEnabled(True)
         else:
-            self.unvisible_cover_panel()
+            self.unvisible_panels()
         self.isDataChanged = False
         self.dataChanged.emit(self.isDataChanged)
 
-    def unvisible_cover_panel(self):
+    def unvisible_panels(self):
         self.clearCover()
         self.labelCoverImage.setEnabled(False)
         self.textDescription.setText('')
         self.widgetCoverInfo.setVisible(False)
-        self.toggleCoverInfo.setIcon(QIcon(':/icons/collapsed_16px.png'))
+        self.toggleCoverInfo.setArrowType(Qt.RightArrow)
+        self.widgetDescriptionInfo.setVisible(False)
+        self.toggleDescription.setArrowType(Qt.RightArrow)
 
     def getData(self):
         for bookInfo in self.bookInfoList:
@@ -329,10 +309,18 @@ class BookInfoPanel(QWidget, Ui_BookInfoPanel):
             cover_size = '{0}x{1}'.format(pix.size().width(), pix.size().height())
             self.labelImageInfo.setText(self.cover_media_type + '\n' + cover_size + '\n' + cover_data_size)
             self.widgetCoverInfo.setVisible(True)
-            self.toggleCoverInfo.setIcon(QIcon(':/icons/expanded_16px.png'))
+            self.toggleCoverInfo.setArrowType(Qt.DownArrow)
         else:
             self.widgetCoverInfo.setVisible(False)
-            self.toggleCoverInfo.setIcon(QIcon(':/icons/collapsed_16px.png'))
+            self.toggleCoverInfo.setArrowType(Qt.RightArrow)
+
+    def set_description(self):
+        if self.description:
+            self.widgetDescriptionInfo.setVisible(True)
+            self.toggleDescription.setArrowType(Qt.DownArrow)
+        else:
+            self.widgetDescriptionInfo.setVisible(False)
+            self.toggleDescription.setArrowType(Qt.RightArrow)
 
     def loadCoverFromFile(self, filename):
         image_format = None
@@ -491,31 +479,31 @@ class BookInfoPanel(QWidget, Ui_BookInfoPanel):
     def onMainInfoToggle(self):
         if self.widgetMain.isVisible():
             self.widgetMain.setVisible(False)
-            self.toggleMainInfo.setIcon(QIcon(':/icons/collapsed_16px.png'))
+            self.toggleMainInfo.setArrowType(Qt.RightArrow)
         else:
             self.widgetMain.setVisible(True)
-            self.toggleMainInfo.setIcon(QIcon(':/icons/expanded_16px.png'))
+            self.toggleMainInfo.setArrowType(Qt.DownArrow)
 
     def onPublishInfoToggle(self):
         if self.widgetPublishInfo.isVisible():
             self.widgetPublishInfo.setVisible(False)
-            self.togglePublishInfo.setIcon(QIcon(':/icons/collapsed_16px.png'))
+            self.togglePublishInfo.setArrowType(Qt.RightArrow)
         else:
             self.widgetPublishInfo.setVisible(True)
-            self.togglePublishInfo.setIcon(QIcon(':/icons/expanded_16px.png'))
+            self.togglePublishInfo.setArrowType(Qt.DownArrow)
             
     def onCoverInfoToggle(self):
         if self.widgetCoverInfo.isVisible():
             self.widgetCoverInfo.setVisible(False)
-            self.toggleCoverInfo.setIcon(QIcon(':/icons/collapsed_16px.png'))
+            self.toggleCoverInfo.setArrowType(Qt.RightArrow)
         else:
             self.widgetCoverInfo.setVisible(True)
-            self.toggleCoverInfo.setIcon(QIcon(':/icons/expanded_16px.png'))
+            self.toggleCoverInfo.setArrowType(Qt.DownArrow)
 
     def onDescriptionInfoToggle(self):
         if self.widgetDescriptionInfo.isVisible():
             self.widgetDescriptionInfo.setVisible(False)
-            self.toggleDescription.setIcon(QIcon(':/icons/collapsed_16px.png'))
+            self.toggleDescription.setArrowType(Qt.RightArrow)
         else:
             self.widgetDescriptionInfo.setVisible(True)
-            self.toggleDescription.setIcon(QIcon(':/icons/expanded_16px.png'))
+            self.toggleDescription.setArrowType(Qt.DownArrow)

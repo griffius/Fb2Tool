@@ -29,7 +29,6 @@ class BookTableView(QTableView):
         self.setShowGrid(False)
         self.horizontalHeader().setHighlightSections(False)
         self.setAcceptDrops(True)
-        
         self.verticalHeader().hide()
 
         self.setSortingEnabled(True)
@@ -42,15 +41,15 @@ class BookTableView(QTableView):
         model.select()
 
         self.headers = [
-            'Id', 
-            _t('table','Title'), 
-            _t('table','Author'), 
-            _t('table','Series'), 
-            _t('table','Num'), 
-            _t('table','Tags'), 
-            _t('table','Lang'), 
-            _t('table','Translator'), 
-            _t('table','Type'), 
+            'Id',
+            _t('table','Title'),
+            _t('table','Author'),
+            _t('table','Series'),
+            _t('table','Num'),
+            _t('table','Tags'),
+            _t('table','Lang'),
+            _t('table','Translator'),
+            _t('table','Type'),
             _t('table','File'),
             _t('table', 'Created'),
             _t('table', 'Modified'),
@@ -71,7 +70,6 @@ class BookTableView(QTableView):
 
         self.horizontalHeader().setContextMenuPolicy(Qt.CustomContextMenu)
         self.horizontalHeader().customContextMenuRequested.connect(self.onHeaderContextMenu)
-        
 
     def onHeaderContextMenu(self, point):
         menu = QMenu()
@@ -90,7 +88,7 @@ class BookTableView(QTableView):
                 self.setColumnWidth(column, width)
             else:
                 self.hidden_column_width[column] = self.columnWidth(column)
-                self.hideColumn(column) 
+                self.hideColumn(column)
 
     def getSelectedId(self):
         list_id = []
@@ -108,16 +106,16 @@ class BookTableView(QTableView):
         currentIndex = self.currentIndex().row()
         for row in self.selectionModel().selectedRows():
             selectedInexes.append(row.row())
-        
+
         self.model().select()
-        
+
         if self.model().rowCount() == 0:
             currentIndex = 0
         elif currentIndex >= self.model().rowCount():
             currentIndex = self.model().rowCount() - 1
 
         self.setCurrentIndex(self.model().index(currentIndex, 0))
-        
+
         for index in selectedInexes:
             row = self.model().index(index, 0)
             self.selectionModel().select(row, QItemSelectionModel.Rows | QItemSelectionModel.Select)
@@ -125,7 +123,7 @@ class BookTableView(QTableView):
     def setFilter(self, filter):
         if len(filter) > 0:
             if not (filter.find(':') > -1 or filter.find(' AND ') > -1 or filter.find(' OR ') > -1):
-                filter += '*'  
+                filter += '*'
             criteria = 'id in (select rowid FROM book_idx WHERE book_idx MATCH "{}")'.format(filter)
         else:
             criteria = ''
@@ -206,7 +204,8 @@ class BookTableModel(QSqlTableModel):
             return super(BookTableModel, self).data(index, Qt.DisplayRole)
         if role == Qt.ForegroundRole:
             return QColor(20, 24, 35)
-        
+        # if role == Qt.BackgroundRole:
+        #     if index.column() == 1:
+        #         if super().data(self.index(index.row(), 3)) == "Мисс Марпл":
+        #             return QColor(0, 0, 0)
         return super(BookTableModel, self).data(index, role)
-
-
