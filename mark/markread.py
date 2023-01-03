@@ -8,9 +8,13 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMessageBox, QComboBox
 from ebookmeta.myzipfile import ZipFile, ZIP_DEFLATED
-from .config_mark import settings, init, load, save
+from .config_mark import settings, new_simple, init, load, save, read_confs, add_conf, remove_conf, config_path
 from .markread_ui import Ui_MarkRead
 from .settingsdialog import SettingsDialog
+from .addprofile import AddProfileDialog
+from .setstatus import Status
+from .database_markread import add_records
+from .query_markread import add_records_query
 
 
 class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
@@ -18,12 +22,13 @@ class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
 		super().__init__()
 		self.setupUi(self)
 		self.setWindowIcon(QIcon(':/icons/markread_32px.png'))
-		# self.profiles()
 		init()
 		load()
+		self.profiles = Profiles(self.toolBar_profiles, self.fill_list_book, self.inpTotal, self.clearing,
+								 self.onSettings, self.visible_control_profiles)
 		self.db = Db(self.inpTotal)
 		self.w = Worker(self.fill_list_book, self.fill_tags_book, self.lineSearch, self.listBase, self.inpTotal,
-						self.inpWork, self.db.backup_db)
+						self.inpWork, self.db.backup_db, self.profiles.get_current_profile)
 		self.fill_list_book()
 		self.listBase.itemDoubleClicked.connect(self.check_item)
 		self.listBase.itemClicked.connect(self.fill_tags_book)
@@ -36,6 +41,11 @@ class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
 		self.actionShowWorkList.triggered.connect(self.w.show_worklist)
 		self.actionShowAll.triggered.connect(self.w.show_alllist)
 		self.actionMarkReadSelected.triggered.connect(self.w.mark_books)
+		self.profiles.cmbProfiles.activated.connect(lambda: self.profiles.load_profile(
+			self.profiles.get_current_profile()))
+		self.actionAddProfile.triggered.connect(self.profiles.addProfileDialog)
+		self.actionRemoveProfile.triggered.connect(self.profiles.removeCurrentProfile)
+		self.visible_control_profiles()
 
 	def keyPressEvent(self, event):
 		if event.key() == QtCore.Qt.Key_Return:
@@ -43,17 +53,28 @@ class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
 			self.listBase.setCurrentRow(0)
 			self.fill_tags_book(self.listBase.currentItem())
 		elif event.key() == QtCore.Qt.Key_F3:
-			self.lineSearch.setFocus()
-			self.inpAuthor.setText('')
-			self.inpTitle.setText('')
+			self.clearing()
+		elif event.key() == QtCore.Qt.Key_F9:
+			self.profiles.toolbar_visible()
 		elif event.key() == QtCore.Qt.Key_Escape:
 			self.close()
 		event.accept()
 
-	def profiles(self):
-		self.fontSizeSpinBox = QComboBox()
-		self.fontSizeSpinBox.setFocusPolicy(Qt.NoFocus)
-		self.toolBar.addWidget(self.fontSizeSpinBox)
+	def visible_control_profiles(self):
+		if len(read_confs().keys()) > 1:
+			self.profiles.cmbProfiles.setEnabled(True)
+			self.actionRemoveProfile.setEnabled(True)
+		else:
+			self.profiles.cmbProfiles.setEnabled(False)
+			self.actionRemoveProfile.setEnabled(False)
+
+	def clearing(self, p=False):
+		self.lineSearch.setFocus()
+		self.inpAuthor.clear()
+		self.inpTitle.clear()
+		if p:
+			self.inpWork.clear()
+			self.w.worklist.clear()
 
 	def fill_list_book(self):
 		self.listBase.clear()
@@ -98,43 +119,116 @@ class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
 				else:
 					self.listBase.item(index).setCheckState(QtCore.Qt.Checked)
 
-	def onSettings(self):
+	def onSettings(self, flag_new=False):
 		settingsDialog = SettingsDialog(self)
-		settingsDialog.pathBasesCollapsed = settings.ui_path_bases_collapsed
-		settingsDialog.queryBasesCollapsed = settings.ui_query_bases_collapsed
-		settingsDialog.backupBasesCollapsed = settings.ui_backup_bases_collapsed
-		settingsDialog.checker_Myhomelib = settings.check_Myhomelib
-		settingsDialog.myhomelib = settings.myhomelib
-		settingsDialog.checker_Calibre = settings.check_Calibre
-		settingsDialog.calibre = settings.calibre
-		settingsDialog.searchBase = settings.search_base
-		settingsDialog.searchQuery = settings.search
-		settingsDialog.markQueryMyhomelib = settings.mark_myhomelib
-		settingsDialog.checker_Backup = settings.create_backup
-		settingsDialog.count_Backup = settings.count_backup
-		settingsDialog.path_Backup = settings.location_backup
+		if flag_new:
+			param = new_simple
+			flag = 'new'
+			settingsDialog.textQueryMarkCalibre.clear()
+		else:
+			param = settings
+			flag = 'exists'
+		settingsDialog.pathBasesCollapsed = param.ui_path_bases_collapsed
+		settingsDialog.queryBasesCollapsed = param.ui_query_bases_collapsed
+		settingsDialog.backupBasesCollapsed = param.ui_backup_bases_collapsed
+		settingsDialog.checker_Myhomelib = param.check_Myhomelib
+		settingsDialog.myhomelib = param.myhomelib
+		settingsDialog.checker_Calibre = param.check_Calibre
+		settingsDialog.calibre = param.calibre
+		settingsDialog.searchBase = param.search_base
+		settingsDialog.searchQuery = param.search
+		settingsDialog.markQueryMyhomelib = param.mark_myhomelib
+		settingsDialog.checker_Backup = param.create_backup
+		settingsDialog.count_Backup = param.count_backup
+		settingsDialog.path_Backup = param.location_backup
 
 		if settingsDialog.exec_():
-			settings.ui_path_bases_collapsed = settingsDialog.pathBasesCollapsed
-			settings.ui_query_bases_collapsed = settingsDialog.queryBasesCollapsed
-			settings.ui_backup_bases_collapsed = settingsDialog.backupBasesCollapsed
-			settings.check_Myhomelib = settingsDialog.checker_Myhomelib
-			settings.myhomelib = settingsDialog.myhomelib
-			settings.check_Calibre = settingsDialog.checker_Calibre
-			settings.calibre = settingsDialog.calibre
-			settings.search_base = settingsDialog.searchBase
-			settings.search = settingsDialog.searchQuery
-			settings.mark_myhomelib = settingsDialog.markQueryMyhomelib
-			settings.create_backup = settingsDialog.checker_Backup
-			settings.count_backup = settingsDialog.count_Backup
-			settings.location_backup = settingsDialog.path_Backup
+			param.ui_path_bases_collapsed = settingsDialog.pathBasesCollapsed
+			param.ui_query_bases_collapsed = settingsDialog.queryBasesCollapsed
+			param.ui_backup_bases_collapsed = settingsDialog.backupBasesCollapsed
+			param.check_Myhomelib = settingsDialog.checker_Myhomelib
+			param.myhomelib = settingsDialog.myhomelib
+			param.check_Calibre = settingsDialog.checker_Calibre
+			param.calibre = settingsDialog.calibre
+			param.search_base = settingsDialog.searchBase
+			param.search = settingsDialog.searchQuery
+			param.mark_myhomelib = settingsDialog.markQueryMyhomelib
+			param.create_backup = settingsDialog.checker_Backup
+			param.count_backup = settingsDialog.count_Backup
+			param.location_backup = settingsDialog.path_Backup
 		if settingsDialog.myclose:
-			save()
+			save(flag, self.profiles.get_current_profile())
+			self.profiles.load_profile(self.profiles.get_current_profile())
 			self.fill_list_book()
 
+class Profiles:
+	def __init__(self, toolbar, listbook, total, clear, sett, visible):
+		super().__init__()
+		self.cmbProfiles = None
+		self.toolbar = toolbar
+		self.fill_list_book = listbook
+		self.total = total
+		self.clear = clear
+		self.sett = sett
+		self.visible = visible
+		self.toolbar.setVisible(False)
+		self.cmb_create()
+
+	def cmb_create(self):
+		self.cmbProfiles = QComboBox()
+		self.cmbProfiles.setFocusPolicy(Qt.NoFocus)
+		self.toolbar.addWidget(self.cmbProfiles)
+		self.cmb_fill()
+
+	def cmb_fill(self):
+		self.cmbProfiles.clear()
+		conf_list = read_confs()
+		self.cmbProfiles.addItems(conf_list.keys())
+
+	def get_current_profile(self):
+		return self.cmbProfiles.currentText()
+
+	def load_profile(self, profile):
+		self.clear(True)
+		for key in read_confs()[profile]:
+			settings.__dict__[key] = read_confs()[profile][key]
+		if not self.fill_list_book():
+			self.total.clear()
+
+	def toolbar_visible(self):
+		flags = not self.toolbar.isVisible()
+		self.toolbar.setVisible(flags)
+
+	def addProfileDialog(self):
+		addPfofileDialog = AddProfileDialog(MarkRead())
+		addPfofileDialog.exec_()
+		if addPfofileDialog.myclose:
+			profile = addPfofileDialog.lineEdit.text()
+			add_conf(profile)
+			self.visible()
+			self.cmb_fill()
+			self.total.clear()
+			QMessageBox.warning(MarkRead(), "Ошибка", "Профиль необходимо настроить")
+			self.cmbProfiles.setCurrentText(profile)
+			self.sett(flag_new=True)
+
+	def removeCurrentProfile(self):
+		confs = read_confs()
+		conf = self.get_current_profile()
+		if conf == 'MarkRead':
+			QMessageBox.warning(MarkRead(), "Ошибка", "Нельзя удалить основной профиль")
+		else:
+			reply = QMessageBox.question(MarkRead(), 'Удаление профиля', "Вы точно хотите удалить профиль " + conf +'?', QMessageBox.Yes, QMessageBox.No)
+			if reply == QMessageBox.Yes:
+				del confs[conf]
+				remove_conf(confs)
+				self.cmb_fill()
+				self.load_profile(self.get_current_profile())
+			else:
+				return False
 
 class Worker:
-	def __init__(self, booklist, taglist, search, listbase, total, work, backup_db):
+	def __init__(self, booklist, taglist, search, listbase, total, work, backup_db, profile):
 		super().__init__()
 		self.w = False
 		self.worklist = []
@@ -145,15 +239,54 @@ class Worker:
 		self.total = total
 		self.work = work
 		self.backup_db = backup_db
+		self.profile = profile
 
 	def mark_books(self):
 		values = self.get_selected_books()
-		if settings.check_Myhomelib:
-			self.check_read_status_selected_books(values, settings.myhomelib, 'MyHomeLib', settings.mark_myhomelib)
-		if settings.check_Calibre:
-			self.check_read_status_selected_books(values, settings.calibre, 'calibre', settings.mark_calibre["query1"],
-												  settings.mark_calibre["query2"])
-		QMessageBox.information(MarkRead(), 'Успешно', 'Отметки прочтения выставлены для книг\n' + '\n'.join(values))
+		if len(values) > 0:
+			if self.ex_status_enable():
+				readed_books = []
+				start_reading_books = []
+				status = Status(MarkRead(), values)
+				status.exec_()
+				if status.myclose:
+					dirs = os.path.join('backup_libraly_bases', 'diary reading')
+					self.backup_db(os.path.join(config_path, 'status.db'), dirs)
+					add_records(status.connection, add_records_query, status.datalist)
+					for item in status.datalist:
+						if item[2] == 'Закончил':
+							readed_books.append(item[0] + ' - ' + item[1])
+						else:
+							start_reading_books.append(item[0] + ' - ' + item[1])
+					if settings.check_Myhomelib:
+						self.check_read_status_selected_books(readed_books, settings.myhomelib, 'MyHomeLib', settings.mark_myhomelib)
+					if settings.check_Calibre:
+						self.check_read_status_selected_books(readed_books, settings.calibre, 'calibre', settings.mark_calibre["query1"],
+															  settings.mark_calibre["query2"])
+					info = ''
+					if len(readed_books) > 0:
+						info += 'Отметки прочтения выставлены для книг\n:' + '\n'.join(readed_books)
+					if len(start_reading_books) > 0:
+						info += '\n' + 'Отметки начала чтения выставлены для книг\n' + '\n'.join(start_reading_books)
+					QMessageBox.information(MarkRead(), 'Успешно', info)
+					self.fill_list_book()
+			else:
+				if settings.check_Myhomelib:
+					self.check_read_status_selected_books(values, settings.myhomelib, 'MyHomeLib', settings.mark_myhomelib)
+				if settings.check_Calibre:
+					self.check_read_status_selected_books(values, settings.calibre, 'calibre', settings.mark_calibre["query1"],
+														  settings.mark_calibre["query2"])
+				QMessageBox.information(MarkRead(), 'Успешно', 'Отметки прочтения выставлены для книг\n' + '\n'.join(values))
+				self.fill_list_book()
+		else:
+			QMessageBox.critical(MarkRead(), 'Ошибка', 'Не выбраны книги')
+
+	def ex_status_enable(self):
+		if os.path.isfile(os.path.join(config_path, 'exstatus')) or os.path.isfile(os.path.join(config_path, 'alls')):
+			flag = True
+		else:
+			flag = False
+		return flag
 
 	def get_selected_books(self):
 		self.checkeditems = []
@@ -163,12 +296,10 @@ class Worker:
 				self.checkeditems.append(self.listbase.item(i).text())
 		return self.checkeditems
 
-	def check_read_status_selected_books(self, values, db, program, query, subquery='', sqlite_connection=None,
-										 current=None):
+	def check_read_status_selected_books(self, values, db, program, query, subquery='', sqlite_connection=None):
 		try:
 			dirs = None
-			if not current:
-				dirs = os.path.join('backup_libraly_bases', 'MarkRead', program)
+			dirs = os.path.join('backup_libraly_bases', self.profile(), program)
 			self.backup_db(db, dirs)
 			sqlite_connection = sqlite3.connect(db)
 			cursor = sqlite_connection.cursor()
@@ -283,7 +414,7 @@ class Db:
 						sAuthors = re.sub(r'(.*), (.*)', r'\2 \1', book[0])
 						book = sAuthors + ' - ' + book[1]
 				else:
-					book = re.sub(r'([^-]+)( - .*)( - .*) - (.*)', r'\1 - \4', book[0])
+					book = re.sub(r'([^-]+)( - .*)?( - .*)? - (.*)', r'\1 - \4', book[0])
 				book_in_base.append(book)
 			self.total.setText(str(len(book_in_base)))
 			return book_in_base

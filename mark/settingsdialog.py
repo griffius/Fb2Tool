@@ -14,16 +14,16 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 		if self.load_query_calibre('query1'):
 			self.textQueryMarkCalibre.setPlainText(self.load_query_calibre('query1'))
 		self.checkMyhomelib.stateChanged.connect(self.OnIsCheckedMyhomelib)
-		self.toolMyhomelib.clicked.connect(self.onToolMyhomelibBase)
+		self.toolMyhomelib.clicked.connect(self.OnToolMyhomelibBase)
 		self.checkCalibre.stateChanged.connect(self.OnIsCheckedCalibre)
-		self.toolCalibre.clicked.connect(self.onToolCalibreBase)
+		self.toolCalibre.clicked.connect(self.OnToolCalibreBase)
 		self.cmbBases.currentIndexChanged.connect(self.OnVisibleQuerySearchControls)
 		self.toolSelectQuery.clicked.connect(self.selectQueryCalibre)
-		self.checkBackup.stateChanged.connect(self.onIsCheckerBackup)
-		self.toolPathBackup.clicked.connect(self.onToolPathBackup)
-		self.togglePathBases.clicked.connect(self.onPathBasesToggle)
-		self.toggleQueryBases.clicked.connect(self.onQueryBasesToggle)
-		self.toggleBackupBases.clicked.connect(self.onBackupBasesToggle)
+		self.checkBackup.stateChanged.connect(self.OnIsCheckerBackup)
+		self.toolPathBackup.clicked.connect(self.OnToolPathBackup)
+		self.togglePathBases.clicked.connect(self.OnPathBasesToggle)
+		self.toggleQueryBases.clicked.connect(self.OnQueryBasesToggle)
+		self.toggleBackupBases.clicked.connect(self.OnBackupBasesToggle)
 		head_style = 'QToolButton {border: 1px solid black; padding: 3px; color: #1E395B;}'  # #1e395b
 		self.togglePathBases.setStyleSheet(head_style)
 		self.toggleQueryBases.setStyleSheet(head_style)
@@ -164,12 +164,12 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 		if not flags:
 			self.textQueryMarkMyhomelib.clear()
 
-	def onToolMyhomelibBase(self):
+	def OnToolMyhomelibBase(self):
 		data = self.inpMyhomelib.text()
 		result = QFileDialog.getOpenFileName(self, caption='Выберите файл базы книг MyHomeLib', directory='D:/',
 												  filter='MyHomeLib base (*.hlc2);;All files(*.*)')
 		if result:
-			self.inpMyhomelib.setText(result[0]) if result[0] else self.inpMyhomelib.setText(data)
+			self.inpMyhomelib.setText(os.path.normpath(result[0])) if result[0] else self.inpMyhomelib.setText(data)
 
 	def selectQueryCalibre(self):
 		if self.lblQueryCalibre.text() == 'Первый запрос':
@@ -196,12 +196,12 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 		if not flags:
 			self.textQueryMarkCalibre.clear()
 
-	def onToolCalibreBase(self):
+	def OnToolCalibreBase(self):
 		data = self.inpCalibre.text()
 		result = QFileDialog.getOpenFileName(self, caption='Выберите файл базы книг Calibre', directory='D:/',
 												  filter='MyHomeLib base (metadata.db);;All files(*.*)')
 		if result:
-			self.inpCalibre.setText(result[0]) if result[0] else self.inpCalibre.setText(data)
+			self.inpCalibre.setText(os.path.normpath(result[0])) if result[0] else self.inpCalibre.setText(data)
 
 	def OnVisibleQuerySearchControls(self):
 		if self.cmbBases.count() >= 1:
@@ -212,7 +212,7 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 			self.lblQuerySearch.setEnabled(False)
 			self.textQuerySearch.clear()
 
-	def onIsCheckerBackup(self):
+	def OnIsCheckerBackup(self):
 		flags = self.checkBackup.isChecked()
 		self.lblCountBackup.setEnabled(flags)
 		self.spinBox.setEnabled(flags)
@@ -220,7 +220,7 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 		self.textPathBackup.setEnabled(flags)
 		self.toolPathBackup.setEnabled(flags)
 
-	def onToolPathBackup(self):
+	def OnToolPathBackup(self):
 		data = self.textPathBackup.text()
 		result = QFileDialog.getExistingDirectory(self, caption='Выберите папку для сохранений резервных копий баз',
 												  directory='D:/')
@@ -244,7 +244,7 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 	def save_query_calibre(self, key):
 		settings.mark_calibre[key] = self.textQueryMarkCalibre.toPlainText()
 
-	def onPathBasesToggle(self):
+	def OnPathBasesToggle(self):
 		if self.widgetPathBases.isVisible():
 			self.widgetPathBases.setVisible(False)
 			self.togglePathBases.setArrowType(Qt.RightArrow)
@@ -253,7 +253,7 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 			self.togglePathBases.setArrowType(Qt.DownArrow)
 		self.adjustSize()
 
-	def onQueryBasesToggle(self):
+	def OnQueryBasesToggle(self):
 		if self.widgetQueryBases.isVisible():
 			self.widgetQueryBases.setVisible(False)
 			self.toggleQueryBases.setArrowType(Qt.RightArrow)
@@ -262,7 +262,7 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 			self.toggleQueryBases.setArrowType(Qt.DownArrow)
 		self.adjustSize()
 
-	def onBackupBasesToggle(self):
+	def OnBackupBasesToggle(self):
 		if self.widgetBackupBases.isVisible():
 			self.widgetBackupBases.setVisible(False)
 			self.toggleBackupBases.setArrowType(Qt.RightArrow)
@@ -274,26 +274,26 @@ class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
 	def accept(self):
 		if self.checker_Myhomelib:
 			if not os.path.exists(self.myhomelib):
-				QMessageBox.critical(self, 'Markread', f'Файл "{self.myhomelib}" не существует')
+				QMessageBox.critical(self, 'Ошибка', f'Файл "{self.myhomelib}" не существует')
 				return False
 		if self.checker_Calibre:
 			if not os.path.exists(self.calibre):
-				QMessageBox.critical(self, 'Markread', f'File "{self.calibre}" не существует')
+				QMessageBox.critical(self, 'Ошибка', f'File "{self.calibre}" не существует')
 				return False
 		if self.textQuerySearch.isEnabled():
 			if self.textQuerySearch.toPlainText() == '':
-				QMessageBox.critical(self, 'Markread', 'Поисковый запрос не может быть пустым')
+				QMessageBox.critical(self, 'Ошибка', 'Поисковый запрос не может быть пустым')
 				return False
 		if self.textQueryMarkMyhomelib.isEnabled():
 			if self.textQueryMarkMyhomelib.toPlainText() == '':
-				QMessageBox.critical(self, 'Markread', 'Запрос для установки отметки для базы MyHomeLib не может быть пустым')
+				QMessageBox.critical(self, 'Ошибка', 'Запрос для установки отметки для базы MyHomeLib не может быть пустым')
 				return False
 		if self.textQueryMarkCalibre.isEnabled():
 			if self.textQueryMarkCalibre.toPlainText() == '':
-				QMessageBox.critical(self, 'Markread', 'Запрос для установки отметки для базы Calibre не может быть пустым')
+				QMessageBox.critical(self, 'Ошибка', 'Запрос для установки отметки для базы Calibre не может быть пустым')
 				return False
 		if self.checker_Backup:
 			if not os.path.exists(self.path_Backup):
-				QMessageBox.critical(self, 'Markread', 'Папка для резервных копий не существует или не выбрана')
+				QMessageBox.critical(self, 'Ошибка', 'Папка для резервных копий не существует или не выбрана')
 				return False
 		return super().accept()

@@ -114,7 +114,10 @@ class MainWindow (QMainWindow, Ui_MainWindow):
         self.actionMark_read.setVisible(self.mark_enable())
 
     def mark_enable(self):
-        flag = True if os.path.isfile(os.path.join(config.config_path, 'markread')) else False
+        if os.path.isfile(os.path.join(config.config_path, 'markread')) or os.path.isfile(os.path.join(config.config_path, 'alls')):
+            flag = True
+        else:
+            flag = False
         return flag
 
     def statusbar(self):
@@ -354,6 +357,7 @@ class MainWindow (QMainWindow, Ui_MainWindow):
         if self.bookList.model().rowCount() == 0:
             self.total.setText(_t('main', 'List is empty'))
             self.sel_book.setText(self.onSklon(_t('main', 'book'), _t('main', 'books'), _t('main', 'books'), '1'))
+            self.bookInfo.unvisible_panels()
             self.bookInfo.clear()
             self.actionsEnabled = False
             self.actionsSetEnabled()
