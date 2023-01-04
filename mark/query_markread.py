@@ -3,15 +3,26 @@ create_table_query = '''
 						"id"	INTEGER UNIQUE,
 						"author"	VARCHAR,
 						"title"	VARCHAR,
-						"status"	VARCHAR,
-						"operation"	VARCHAR(40),
-						"date"	VARCHAR(10),
+						"status" VARCHAR,
+						"operation"	VARCHAR,
+						"date_start"	VARCHAR,
+						"date_finish"	VARCHAR,
 						PRIMARY KEY("id" AUTOINCREMENT)
 					);
                 '''
 add_records_query = '''
-	INSERT INTO books (author, title, status, operation, date) VALUES(?, ?, ?, ?, ?);
+	INSERT INTO books (author, title, status, operation, date_start) VALUES (?, ?, ?, ?, ?);
 '''
+update_records_query = '''
+	UPDATE books SET status=?, date_finish=? WHERE author=? AND title=?;
+'''
+check_exists_query = '''
+	SELECT * FROM books WHERE author=? AND title=?;
+'''
+
+
+
+
 select_all_query = '''
     SELECT author, title, status, operation, date FROM books;
 '''

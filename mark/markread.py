@@ -13,8 +13,8 @@ from .markread_ui import Ui_MarkRead
 from .settingsdialog import SettingsDialog
 from .addprofile import AddProfileDialog
 from .setstatus import Status
-from .database_markread import add_records
-from .query_markread import add_records_query
+from .database_markread import add_records, check_exists
+from .query_markread import add_records_query, update_records_query, check_exists_query
 
 
 class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
@@ -245,19 +245,28 @@ class Worker:
 		values = self.get_selected_books()
 		if len(values) > 0:
 			if self.ex_status_enable():
-				readed_books = []
-				start_reading_books = []
+				# Списки "АВтор - Название" для формирования текста в завершающем сообщении
+				readed_books, start_reading_books = [], []
+				# Списки для выбора - добавлять запись или обновлять ее
+				list_records_for_add, list_records_for_update = [], []
 				status = Status(MarkRead(), values)
 				status.exec_()
 				if status.myclose:
 					dirs = os.path.join('backup_libraly_bases', 'diary reading')
 					self.backup_db(os.path.join(config_path, 'status.db'), dirs)
-					add_records(status.connection, add_records_query, status.datalist)
 					for item in status.datalist:
-						if item[2] == 'Закончил':
+						if check_exists(status.connection, check_exists_query, (item[0], item[1])):
 							readed_books.append(item[0] + ' - ' + item[1])
+							t = (item[2], item[4], item[0], item[1])
+							list_records_for_update.append(t)
 						else:
 							start_reading_books.append(item[0] + ' - ' + item[1])
+							list_records_for_add.append(item)
+					if len(list_records_for_add) > 0:
+						add_records(status.connection, add_records_query, list_records_for_add)
+					else:
+						add_records(status.connection, update_records_query, list_records_for_update)
+					status.connection.commit()
 					if settings.check_Myhomelib:
 						self.check_read_status_selected_books(readed_books, settings.myhomelib, 'MyHomeLib', settings.mark_myhomelib)
 					if settings.check_Calibre:
@@ -265,9 +274,9 @@ class Worker:
 															  settings.mark_calibre["query2"])
 					info = ''
 					if len(readed_books) > 0:
-						info += 'Отметки прочтения выставлены для книг\n:' + '\n'.join(readed_books)
+						info += 'Отметки прочтения выставлены для книг:\n' + '\n'.join(readed_books) + '\n'
 					if len(start_reading_books) > 0:
-						info += '\n' + 'Отметки начала чтения выставлены для книг\n' + '\n'.join(start_reading_books)
+						info += 'Отметки начала чтения выставлены для книг:\n' + '\n'.join(start_reading_books)
 					QMessageBox.information(MarkRead(), 'Успешно', info)
 					self.fill_list_book()
 			else:
@@ -276,7 +285,7 @@ class Worker:
 				if settings.check_Calibre:
 					self.check_read_status_selected_books(values, settings.calibre, 'calibre', settings.mark_calibre["query1"],
 														  settings.mark_calibre["query2"])
-				QMessageBox.information(MarkRead(), 'Успешно', 'Отметки прочтения выставлены для книг\n' + '\n'.join(values))
+				QMessageBox.information(MarkRead(), 'Успешно', 'Отметки прочтения выставлены для книг:\n' + '\n'.join(values))
 				self.fill_list_book()
 		else:
 			QMessageBox.critical(MarkRead(), 'Ошибка', 'Не выбраны книги')
@@ -447,14 +456,14 @@ class Db:
 					os.remove(aTablesBackup[-1][0])
 					aTablesBackup.pop(-1)
 					counter -= 1
-					zipp = ZipFile(name_backup, mode='w', compression=ZIP_DEFLATED)
-					zipp.write(db)
-					zipp.close()
+				zipp = ZipFile(name_backup, mode='w', compression=ZIP_DEFLATED)
+				zipp.write(db, os.path.basename(db))
+				zipp.close()
 			else:
 				zipp = ZipFile(name_backup, mode='w', compression=ZIP_DEFLATED)
 				zipp.write(db, os.path.basename(db))
 				zipp.close()
 		else:
 			zipp = ZipFile(name_backup, mode='w', compression=ZIP_DEFLATED)
-			zipp.write(db)
+			zipp.write(db, os.path.basename(db))
 			zipp.close()

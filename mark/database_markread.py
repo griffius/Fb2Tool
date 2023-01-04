@@ -18,4 +18,11 @@ def create_base_and_table():
 def add_records(conn, query, values):
 	cur = conn.cursor()
 	cur.executemany(query, values)
-	conn.commit()
+
+def check_exists(conn, query, value):
+	cur = conn.cursor()
+	info = cur.execute(query, value).fetchone()
+	if info is None:
+		return False
+	else:
+		return True
