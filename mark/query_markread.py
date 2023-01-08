@@ -19,13 +19,17 @@ update_records_query = '''
 check_exists_query = '''
 	SELECT * FROM books WHERE author=? AND title=?;
 '''
-
-
-
-
 select_all_query = '''
-    SELECT author, title, status, operation, date FROM books;
+    SELECT author, title, status, operation, date_start, date_finish FROM books;
 '''
+select_year_query = '''
+    SELECT author, title, status, operation, date_start, date_finish FROM books WHERE date_finish LIKE ?;
+'''
+select_exists_year_query = '''
+    SELECT date_finish FROM books;
+'''
+
+
 
 find_start_date_query = '''
 SELECT date FROM books WHERE title like " + ? + " AND status like "Начал";

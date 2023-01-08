@@ -1,7 +1,9 @@
 from datetime import datetime
 from PyQt5.QtWidgets import QDialog, QMessageBox
 from .set_status_markread_ui import Ui_SetMarkStatus
-from .database_markread import init_database
+from .database_markread import init_database, check_exists
+from .query_markread import check_exists_query
+
 
 class Status(QDialog, Ui_SetMarkStatus):
     def __init__(self, parent, lst):
@@ -28,6 +30,8 @@ class Status(QDialog, Ui_SetMarkStatus):
     def load_elem(self, num):
         self.inpAuthor_st.setText(self.list[num].split(' - ')[0])
         self.inpTitle_st.setText(self.list[num].split(' - ')[1])
+        if check_exists(self.connection, check_exists_query, (self.inpAuthor_st.text(), self.inpTitle_st.text())):
+            self.cmbOperation.setEnabled(False)
 
     def next_elem(self):
         self.idx_start += 1
@@ -48,10 +52,16 @@ class Status(QDialog, Ui_SetMarkStatus):
         self.lblIcon.setVisible(flag)
 
     def set_status_current_book(self):
-        book_status = (self.inpAuthor_st.text(), self.inpTitle_st.text(), self.cmbStatus.currentText(),
-                       self.cmbOperation.currentText(), self.inpDate.text())
-        self.datalist.append(book_status)
-        self.lblIcon.setVisible(True)
+        if check_exists(self.connection, check_exists_query, (self.inpAuthor_st.text(), self.inpTitle_st.text())) and \
+                self.cmbStatus.currentText() == 'Начал':
+            QMessageBox.critical(self, 'Ошибка', 'Книга "' + self.inpAuthor_st.text() + ' - ' + self.inpTitle_st.text()
+                                 + '" уже отмечена как читаемая')
+            return
+        else:
+            book_status = (self.inpAuthor_st.text(), self.inpTitle_st.text(), self.cmbStatus.currentText(),
+                           self.cmbOperation.currentText(), self.inpDate.text())
+            self.datalist.append(book_status)
+            self.lblIcon.setVisible(True)
 
     def get_status_book(self, book):
         for c in self.datalist:

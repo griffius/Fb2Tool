@@ -15,6 +15,7 @@ from .addprofile import AddProfileDialog
 from .setstatus import Status
 from .database_markread import add_records, check_exists
 from .query_markread import add_records_query, update_records_query, check_exists_query
+from .statistic import Statistic
 
 
 class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
@@ -46,6 +47,11 @@ class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
 		self.actionAddProfile.triggered.connect(self.profiles.addProfileDialog)
 		self.actionRemoveProfile.triggered.connect(self.profiles.removeCurrentProfile)
 		self.visible_control_profiles()
+		if self.w.ex_status_enable():
+			self.actionGetStatistic.setVisible(True)
+			self.actionGetStatistic.setEnabled(True)
+		self.actionGetStatistic.triggered.connect(self.get_statictic_form)
+
 
 	def keyPressEvent(self, event):
 		if event.key() == QtCore.Qt.Key_Return:
@@ -89,6 +95,10 @@ class MarkRead(QtWidgets.QMainWindow, Ui_MarkRead):
 				return True
 		except:
 			return False
+
+	def get_statictic_form(self):
+		reportDialog = Statistic(self)
+		reportDialog.exec_()
 
 	@staticmethod
 	def check_item(item):
@@ -267,6 +277,7 @@ class Worker:
 					else:
 						add_records(status.connection, update_records_query, list_records_for_update)
 					status.connection.commit()
+					status.connection.close()
 					if settings.check_Myhomelib:
 						self.check_read_status_selected_books(readed_books, settings.myhomelib, 'MyHomeLib', settings.mark_myhomelib)
 					if settings.check_Calibre:
@@ -307,7 +318,6 @@ class Worker:
 
 	def check_read_status_selected_books(self, values, db, program, query, subquery='', sqlite_connection=None):
 		try:
-			dirs = None
 			dirs = os.path.join('backup_libraly_bases', self.profile(), program)
 			self.backup_db(db, dirs)
 			sqlite_connection = sqlite3.connect(db)

@@ -1,5 +1,4 @@
-from PyQt5.QtWidgets import QDialog
-from PyQt5.QtCore import QSize, QCoreApplication
+from PyQt5.QtCore import QCoreApplication
 
 from .textviewdialog_ui import Ui_ViewTextDialog
 from .smartdialog import SmartDialog

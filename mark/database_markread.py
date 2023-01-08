@@ -26,3 +26,16 @@ def check_exists(conn, query, value):
 		return False
 	else:
 		return True
+
+def get_all_data(conn, query, value=None):
+	cur = conn.cursor()
+	if value:
+		info = cur.execute(query, [value])
+	else:
+		info = cur.execute(query)
+	return info
+
+def get_exists_year(conn, query):
+	cur = conn.cursor()
+	info = cur.execute(query)
+	return info
