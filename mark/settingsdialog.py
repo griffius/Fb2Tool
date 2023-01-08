@@ -1,12 +1,11 @@
 import os
-from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QMessageBox, QFileDialog
+from PyQt5.QtWidgets import QMessageBox, QFileDialog, QDialog
 from .config_mark import settings
 from .setting_markread_ui import Ui_settings_mark
 
 
-class SettingsDialog(QtWidgets.QDialog, Ui_settings_mark):
+class SettingsDialog(QDialog, Ui_settings_mark):
 	def __init__(self, parent):
 		super(SettingsDialog, self).__init__(parent)
 		self.setupUi(self)

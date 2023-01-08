@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Statistic(object):
     def setupUi(self, Statistic):
         Statistic.setObjectName("Statistic")
-        Statistic.resize(350, 500)
+        Statistic.resize(600, 500)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)

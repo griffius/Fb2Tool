@@ -1,5 +1,6 @@
 from datetime import datetime
-from PyQt5 import Qt
+
+from PyQt5.QtPrintSupport import QPrinter, QPrintDialog
 from PyQt5.QtWidgets import QDialog
 from .get_statistic_markread_ui import Ui_Statistic
 from .query_markread import select_all_query, select_exists_year_query, select_year_query
@@ -110,9 +111,9 @@ class Statistic(QDialog, Ui_Statistic):
         self.cmbYear.setEnabled(False)
 
     def print_report(self):
-        printer = Qt.QPrinter()
-        print_dialog = Qt.QPrintDialog(printer)
-        if print_dialog.exec() == Qt.QDialog.Accepted:
+        printer = QPrinter()
+        print_dialog = QPrintDialog(printer)
+        if print_dialog.exec() == QDialog.Accepted:
             self.listReport.print(printer)
 
     def closeEvent(self, e):
